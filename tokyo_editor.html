@@ -1,0 +1,3078 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="東京行程">
+<meta name="theme-color" content="#b8593a">
+<title>東京 9 日｜可編輯版</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Noto Serif TC", "Source Serif Pro", Georgia, serif;
+    color: #2d2822;
+    background-color: #f5efe4;
+    background-image:
+      radial-gradient(at 20% 30%, rgba(184,89,58,0.06) 0, transparent 40%),
+      radial-gradient(at 80% 70%, rgba(74,107,74,0.08) 0, transparent 40%),
+      repeating-linear-gradient(45deg, transparent 0, transparent 2px, rgba(0,0,0,0.008) 2px, rgba(0,0,0,0.008) 4px);
+    min-height: 100vh;
+    overscroll-behavior-y: none;
+  }
+  .mono { font-family: "JetBrains Mono", "Courier New", monospace; }
+
+  /* ======== Header ======== */
+  .top-header {
+    position: sticky; top: 0; z-index: 50;
+    background: #f5efe4ee;
+    border-bottom: 1px solid #c9bda5;
+    padding: 12px 16px 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .top-header .seal-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .seal {
+    display: inline-block;
+    border: 2px solid #b8593a;
+    color: #b8593a;
+    padding: 3px 8px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 10px;
+    transform: rotate(-2deg);
+  }
+  .top-header .line { flex: 1; height: 1px; background: #c9bda5; }
+  .top-header .meta {
+    font-size: 10px; color: #7a6a5a;
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 1px;
+  }
+  .top-header h1 {
+    font-size: 20px; font-weight: 700;
+    margin: 0 0 3px; letter-spacing: -0.5px;
+  }
+  .top-header .trip-sub {
+    margin: 0; font-size: 11.5px;
+    color: #7a6a5a; font-style: italic;
+  }
+  .header-actions {
+    display: flex; gap: 6px; margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-mini {
+    font-size: 11px; padding: 4px 10px;
+    background: transparent;
+    border: 1.5px solid #c9bda5;
+    color: #2d2822;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.15s;
+  }
+  .btn-mini:hover, .btn-mini:active { background: #2d2822; color: #f5efe4; border-color: #2d2822; }
+  .btn-mini.danger { color: #7a2f1a; border-color: #c9bda5; }
+  .btn-mini.danger:hover { background: #7a2f1a; border-color: #7a2f1a; color: #f5efe4; }
+  .btn-mini.primary { background: #b8593a; color: #f5efe4; border-color: #b8593a; }
+  .btn-mini.primary:hover { background: #2d2822; border-color: #2d2822; }
+
+  /* ======== Day Tabs ======== */
+  .day-tabs-wrap {
+    position: sticky;
+    top: 114px; z-index: 40;
+    background: #f5efe4cc;
+    border-bottom: 1px solid #c9bda5;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .day-tabs {
+    display: flex; gap: 8px;
+    overflow-x: auto;
+    padding: 10px 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1.5px solid #c9bda5;
+    color: #2d2822;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border-radius: 2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .day-tab.active {
+    background: #2d2822; color: #f5efe4;
+    border-color: #2d2822;
+  }
+  .day-tab .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    opacity: 0.7;
+    margin-right: 4px;
+  }
+  .day-tab.add { color: #b8593a; border-style: dashed; border-color: #b8593a; }
+
+  /* ======== 內容 ======== */
+  .content {
+    padding: 16px 12px 100px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .day-card {
+    background: #fffaf0;
+    border: 1px solid #d9cfbc;
+    border-radius: 4px;
+    padding: 22px 14px 16px;
+    margin-bottom: 20px;
+    position: relative;
+    box-shadow: 2px 3px 0 rgba(45,40,34,0.06);
+  }
+  .day-card::before {
+    content: attr(data-day);
+    position: absolute;
+    top: -10px; left: 14px;
+    background: #b8593a;
+    color: #f5efe4;
+    padding: 4px 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 12px;
+  }
+  .day-head {
+    display: flex; gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .day-titles { flex: 1; min-width: 0; }
+  .day-title {
+    font-size: 20px; font-weight: 700;
+    margin: 2px 0 2px; letter-spacing: -0.3px;
+    cursor: pointer;
+    border-bottom: 2px dotted transparent;
+    transition: border 0.15s;
+  }
+  .day-title:hover, .day-title:focus-within { border-color: #c9bda5; }
+  .day-sub {
+    font-size: 12px; color: #7a6a5a;
+    font-style: italic;
+    margin: 0;
+    cursor: pointer;
+    line-height: 1.5;
+  }
+  .day-actions { display: flex; gap: 4px; }
+  .icon-btn {
+    width: 28px; height: 28px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #7a6a5a;
+    border-radius: 2px;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover, .icon-btn:active {
+    background: #f5efe4;
+    color: #b8593a;
+  }
+
+  /* ======== 時間軸 ======== */
+  .timeline {
+    position: relative;
+    padding-left: 18px;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 5px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: #c9bda5;
+  }
+  .tl-item {
+    position: relative;
+    padding-bottom: 14px;
+    transition: opacity 0.3s;
+  }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item.done { opacity: 0.45; }
+  .tl-item.done .tl-name { text-decoration: line-through; }
+  .tl-item.dragging { opacity: 0.4; }
+  .tl-item.drag-over { border-top: 2px solid #b8593a; }
+
+  .tl-dot {
+    position: absolute;
+    left: -18px; top: 5px;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: #4a6b4a;
+    border: 2.5px solid #fffaf0;
+    box-shadow: 0 0 0 1px #c9bda5;
+    cursor: grab;
+  }
+  .tl-item.dragging .tl-dot { cursor: grabbing; }
+
+  .tl-row {
+    display: flex; gap: 10px;
+    align-items: flex-start;
+  }
+  .tl-check {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border: 1.5px solid #c9bda5;
+    background: #fffaf0;
+    border-radius: 2px;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 4px;
+    display: flex;
+    align-items: center; justify-content: center;
+    color: #4a6b4a;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .tl-check.checked {
+    background: #4a6b4a;
+    border-color: #4a6b4a;
+    color: #f5efe4;
+  }
+  .tl-time {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 46px;
+    padding-top: 4px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+  .tl-body { flex: 1; min-width: 0; }
+  .tl-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 3px;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: white;
+    border-radius: 2px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .tl-name {
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .tl-dur {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: #7a6a5a;
+    cursor: pointer;
+  }
+  .tl-note {
+    font-size: 12.5px;
+    color: #5a5248;
+    line-height: 1.55;
+    margin-top: 2px;
+    white-space: pre-line;
+    cursor: pointer;
+  }
+  .tl-actions {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+  }
+  .tl-mini-btn {
+    background: transparent;
+    border: none;
+    color: #a89a82;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 6px;
+    font-family: inherit;
+    border-radius: 2px;
+  }
+  .tl-mini-btn:hover, .tl-mini-btn:active {
+    color: #b8593a;
+    background: #f5efe4;
+  }
+  .tl-mini-btn.danger:hover { color: #7a2f1a; }
+
+  /* ======== 詳情 (交通/提醒/筆記) ======== */
+  .tl-details {
+    margin-top: 8px;
+    display: none;
+    padding: 10px 12px;
+    background: #f5efe4;
+    border-left: 2px solid #b8593a;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .tl-details.open { display: block; animation: fadein 0.25s ease-out; }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tl-db { margin-bottom: 10px; }
+  .tl-db:last-child { margin-bottom: 0; }
+  .tl-db-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    color: #b8593a;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tl-db-label.transport { color: #4a6b4a; }
+  .tl-db-label.notes { color: #6b5a4a; }
+  .tl-db-content {
+    color: #5a5248;
+    white-space: pre-line;
+    cursor: pointer;
+  }
+  .tl-db-placeholder {
+    color: #c9bda5;
+    font-style: italic;
+  }
+
+  .tl-expand {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: #b8593a;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0 0;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+  }
+  .tl-expand .chev {
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+  .tl-expand.open .chev { transform: rotate(90deg); }
+
+  /* 新增項目按鈕 */
+  .add-item {
+    margin-top: 12px;
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    border: 1.5px dashed #c9bda5;
+    color: #7a6a5a;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .add-item:hover, .add-item:active {
+    border-color: #b8593a;
+    color: #b8593a;
+    background: #fffaf0;
+  }
+
+  /* 每日重點 */
+  .day-summary {
+    font-size: 12px;
+    color: #7a6a5a;
+    padding: 10px 12px;
+    background: #f5efe4;
+    border-left: 2px solid #b8593a;
+    margin-top: 14px;
+    border-radius: 2px;
+    line-height: 1.6;
+  }
+  .day-summary .s-title {
+    font-weight: 700;
+    color: #2d2822;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .day-summary ul { margin: 0; padding-left: 16px; }
+  .day-summary li {
+    margin-bottom: 4px;
+    cursor: pointer;
+    position: relative;
+  }
+  .day-summary li:hover { color: #2d2822; }
+
+  /* 預算列 */
+  .day-budget {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #2d2822;
+    color: #f5efe4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 2px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  .day-budget .amt {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .day-budget .prog {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    opacity: 0.7;
+    margin-left: 8px;
+  }
+
+  /* ======== FAB 按鈕群 ======== */
+  .fab-group {
+    position: fixed;
+    bottom: 16px; right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 60;
+  }
+  .fab {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #b8593a;
+    color: #f5efe4;
+    border: none;
+    font-size: 20px;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(45,40,34,0.25);
+    transition: transform 0.15s;
+  }
+  .fab:hover, .fab:active { transform: translateY(-2px); }
+  .fab.secondary {
+    background: #fffaf0;
+    color: #2d2822;
+    border: 1px solid #c9bda5;
+  }
+
+  /* ======== Modal ======== */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(45,40,34,0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-bg.open {
+    display: flex;
+    animation: fadein 0.2s;
+  }
+  .modal {
+    background: #fffaf0;
+    border-radius: 4px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 20px 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .modal h2 {
+    font-size: 17px;
+    margin: 0 0 2px;
+    padding-right: 30px;
+  }
+  .modal .sub {
+    font-size: 11.5px;
+    color: #7a6a5a;
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+  .modal-close {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #7a6a5a;
+    padding: 4px 10px;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .field-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7a6a5a;
+    margin-bottom: 4px;
+    margin-top: 12px;
+  }
+  .input, .textarea, .select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid #c9bda5;
+    background: #fffaf0;
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 13px;
+    color: inherit;
+    resize: vertical;
+  }
+  .input:focus, .textarea:focus, .select:focus {
+    outline: 2px solid #b8593a;
+    outline-offset: 1px;
+    border-color: #b8593a;
+  }
+  .textarea { min-height: 60px; font-family: inherit; line-height: 1.5; }
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .modal-foot {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: #b8593a;
+    color: #f5efe4;
+    border: none;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 2px;
+    font-size: 13px;
+    flex: 1;
+  }
+  .btn-primary:hover, .btn-primary:active { background: #2d2822; }
+  .btn-cancel {
+    background: transparent;
+    color: #7a6a5a;
+    border: 1.5px solid #c9bda5;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    border-radius: 2px;
+    font-size: 13px;
+  }
+
+  /* 預算總覽 */
+  .modal-row {
+    display: grid;
+    grid-template-columns: 50px 1fr auto;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #c9bda5;
+    font-size: 13px;
+    align-items: center;
+  }
+  .modal-row:last-child { border-bottom: none; }
+  .modal-row .d {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+    color: #b8593a;
+    font-size: 11px;
+  }
+  .modal-row .b {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+  }
+  .modal-total {
+    margin-top: 14px;
+    padding: 12px;
+    background: #2d2822;
+    color: #f5efe4;
+    display: flex;
+    justify-content: space-between;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .modal-hint {
+    margin-top: 12px;
+    padding: 10px;
+    background: #f5efe4;
+    border-left: 2px solid #b8593a;
+    border-radius: 2px;
+    font-size: 11px;
+    color: #7a6a5a;
+    line-height: 1.6;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #2d2822;
+    color: #f5efe4;
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    z-index: 200;
+    opacity: 0;
+    transition: all 0.25s;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* 確認對話框 */
+  .confirm-modal { max-width: 340px; text-align: center; padding: 24px 20px; }
+  .confirm-modal .q {
+    font-size: 15px;
+    margin: 4px 0 18px;
+    line-height: 1.5;
+  }
+  .confirm-modal .hint {
+    font-size: 12px;
+    color: #7a6a5a;
+    margin-bottom: 18px;
+  }
+
+  /* ===== 天氣列 ===== */
+  .day-weather {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f5efe4;
+    border-left: 2px solid #4a6b4a;
+    border-radius: 2px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #5a5248;
+    flex-wrap: wrap;
+  }
+  .day-weather .icon { font-size: 18px; line-height: 1; }
+  .day-weather .w-cond { font-weight: 700; color: #2d2822; }
+  .day-weather .w-temp {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+  }
+  .day-weather .w-temp .hi { color: #b8593a; }
+  .day-weather .w-temp .lo { color: #4a6b4a; }
+  .day-weather .w-meta {
+    font-size: 11px;
+    color: #7a6a5a;
+    margin-left: auto;
+  }
+  .day-weather.loading { color: #a89a82; font-style: italic; }
+  .day-weather.error { border-color: #c9bda5; color: #a89a82; }
+
+  /* ===== 地圖按鈕 ===== */
+  .map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    background: #4a6b4a;
+    color: #f5efe4;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 2px;
+    text-decoration: none;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: all 0.15s;
+  }
+  .map-btn:hover { background: #2d2822; }
+
+  /* ===== 照片區 ===== */
+  .tl-photos {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .tl-photo {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #c9bda5;
+    cursor: pointer;
+    background: #f5efe4;
+  }
+  .tl-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .tl-photo .remove {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 18px; height: 18px;
+    background: rgba(45,40,34,0.85);
+    color: #f5efe4;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    font-family: inherit;
+    display: none;
+  }
+  .tl-photo:hover .remove { display: block; }
+  .tl-photo.add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: dashed;
+    color: #7a6a5a;
+    font-size: 22px;
+    background: #fffaf0;
+  }
+  .tl-photo.add:hover {
+    border-color: #b8593a;
+    color: #b8593a;
+  }
+
+  /* 照片 Lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(45,40,34,0.92);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .lightbox .close-lb {
+    position: absolute;
+    top: 18px; right: 18px;
+    background: rgba(255,250,240,0.9);
+    border: none;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    color: #2d2822;
+  }
+
+  /* 編輯 Modal 的照片/地圖欄位 */
+  .photo-input-area {
+    border: 1.5px dashed #c9bda5;
+    border-radius: 3px;
+    padding: 12px;
+    text-align: center;
+    background: #f5efe4;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 12px;
+    color: #7a6a5a;
+  }
+  .photo-input-area:hover {
+    border-color: #b8593a;
+    color: #b8593a;
+  }
+  .photo-input-area.dragover {
+    border-color: #b8593a;
+    background: #fde4d3;
+  }
+  .photo-preview-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .photo-preview {
+    position: relative;
+    width: 70px; height: 70px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #c9bda5;
+  }
+  .photo-preview img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .photo-preview .rm {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 18px; height: 18px;
+    background: rgba(184,89,58,0.95);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  /* 分享 modal */
+  .share-url-box {
+    background: #f5efe4;
+    padding: 10px;
+    border-radius: 2px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    word-break: break-all;
+    border: 1px solid #c9bda5;
+    max-height: 120px;
+    overflow-y: auto;
+    color: #5a5248;
+    line-height: 1.5;
+  }
+  .share-size {
+    font-size: 11px;
+    color: #7a6a5a;
+    margin-top: 6px;
+    text-align: right;
+  }
+  .share-size.warn { color: #b8593a; font-weight: 700; }
+
+  @media (min-width: 720px) {
+    .top-header h1 { font-size: 26px; }
+    .day-card { padding: 26px 22px 20px; }
+    .day-title { font-size: 24px; }
+    .tl-name { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="top-header">
+  <div class="seal-row">
+    <span class="seal">行程手帳</span>
+    <span class="line"></span>
+    <span class="meta" id="saveIndicator">已儲存</span>
+  </div>
+  <h1 id="tripTitle">東京 9 日｜漫步季節</h1>
+  <p class="trip-sub" id="tripSub">— 住宿：相鐵 Fresa Inn 大門站前 —</p>
+  <div class="header-actions">
+    <button class="btn-mini" onclick="openTripEditor()">✎ 標題</button>
+    <button class="btn-mini" onclick="openModal('budget')">¥ 預算</button>
+    <button class="btn-mini" onclick="openSettingsModal()">☀ 天氣</button>
+    <button class="btn-mini" onclick="exportData()">↓ 匯出</button>
+    <button class="btn-mini" onclick="importData()">↑ 匯入</button>
+    <button class="btn-mini primary" onclick="openShareModal()">🔗 分享</button>
+    <button class="btn-mini danger" onclick="confirmReset()">↻ 重置</button>
+  </div>
+</header>
+
+<!-- Day Tabs -->
+<div class="day-tabs-wrap">
+  <div class="day-tabs" id="dayTabs"></div>
+</div>
+
+<!-- 主內容 -->
+<main class="content" id="content"></main>
+
+<!-- FAB 按鈕 -->
+<div class="fab-group">
+  <button class="fab secondary" onclick="scrollToTop()" title="回到頂部">↑</button>
+  <button class="fab" onclick="openAddItemModal()" title="新增行程">+</button>
+</div>
+
+<!-- 單項編輯 Modal -->
+<div class="modal-bg" id="itemModal" onclick="if(event.target===this) closeModal('itemModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('itemModal')">×</button>
+    <h2 id="itemModalTitle">編輯行程項目</h2>
+    <p class="sub" id="itemModalSub"></p>
+
+    <div class="row-2">
+      <div>
+        <label class="field-label">時間</label>
+        <input type="time" class="input" id="fItemTime">
+      </div>
+      <div>
+        <label class="field-label">類別</label>
+        <select class="select" id="fItemType">
+          <option>景點</option>
+          <option>用餐</option>
+          <option>購物</option>
+          <option>咖啡</option>
+          <option>拍照</option>
+          <option>交通</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="field-label">名稱</label>
+    <input class="input" id="fItemName" placeholder="例：淺草寺">
+
+    <div class="row-2">
+      <div>
+        <label class="field-label">停留時間</label>
+        <input class="input" id="fItemDur" placeholder="例：90分">
+      </div>
+      <div>
+        <label class="field-label">預算 (¥)</label>
+        <input type="number" class="input" id="fItemBudget" min="0">
+      </div>
+    </div>
+
+    <label class="field-label">描述 / 內容</label>
+    <textarea class="textarea" id="fItemNote" placeholder="推薦餐廳、景點介紹..." rows="3"></textarea>
+
+    <label class="field-label">🗺️ 地圖網址 (Google Maps)</label>
+    <input class="input" id="fItemMapUrl" placeholder="貼上 Google Maps 連結 (https://maps.app.goo.gl/...)">
+
+    <label class="field-label">交通資訊</label>
+    <textarea class="textarea" id="fItemTransport" placeholder="路線、車資..." rows="2"></textarea>
+
+    <label class="field-label">提醒 / 拍照重點</label>
+    <textarea class="textarea" id="fItemTip" placeholder="📸 拍照重點、⚠️ 提醒事項..." rows="2"></textarea>
+
+    <label class="field-label">筆記 / 備註 (個人)</label>
+    <textarea class="textarea" id="fItemNotes" placeholder="吃完覺得...、要記得...、下次試..." rows="2"></textarea>
+
+    <label class="field-label">📷 照片 (貼上、選檔、或拖曳)</label>
+    <div class="photo-input-area" id="photoInputArea"
+         onclick="document.getElementById('photoFileInput').click()">
+      點此選擇照片 / 拖曳到這裡 / 直接在此貼上（Ctrl+V）
+      <div class="photo-preview-list" id="photoPreviewList"></div>
+    </div>
+    <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none"
+           onchange="handlePhotoFiles(event.target.files)">
+
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('itemModal')">取消</button>
+      <button class="btn-primary" onclick="saveItemEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day 編輯 Modal -->
+<div class="modal-bg" id="dayModal" onclick="if(event.target===this) closeModal('dayModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('dayModal')">×</button>
+    <h2 id="dayModalTitle">編輯 Day</h2>
+
+    <label class="field-label">日期 (顯示用)</label>
+    <input class="input" id="fDayDate" placeholder="例：6/14 (日)">
+
+    <label class="field-label">主題</label>
+    <input class="input" id="fDayTitle" placeholder="例：東京經典">
+
+    <label class="field-label">副標題</label>
+    <input class="input" id="fDaySub" placeholder="例：淺草寺 → 晴空塔 → 秋葉原">
+
+    <label class="field-label">今日重點 (每行一條)</label>
+    <textarea class="textarea" id="fDaySummary" rows="5" placeholder="⚠️ 重要提醒&#10;💡 小技巧"></textarea>
+
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('dayModal')">取消</button>
+      <button class="btn-primary" onclick="saveDayEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 行程標題 Modal -->
+<div class="modal-bg" id="tripModal" onclick="if(event.target===this) closeModal('tripModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('tripModal')">×</button>
+    <h2>行程標題</h2>
+
+    <label class="field-label">主標題</label>
+    <input class="input" id="fTripTitle">
+
+    <label class="field-label">副標題</label>
+    <input class="input" id="fTripSub">
+
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('tripModal')">取消</button>
+      <button class="btn-primary" onclick="saveTripEdit()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 預算 Modal -->
+<div class="modal-bg" id="budgetModal" onclick="if(event.target===this) closeModal('budgetModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('budgetModal')">×</button>
+    <h2>預算總覽</h2>
+    <p class="sub">單人每日活動費（不含機票/住宿/購物）</p>
+    <div id="budgetRows"></div>
+    <div class="modal-total">
+      <span>總計</span>
+      <span id="budgetTotal">¥ 0</span>
+    </div>
+    <div class="modal-hint">
+      💡 日圓匯率約 0.21-0.22 台幣<br>
+      💡 預算含交通、門票、三餐估算<br>
+      ✓ 勾選完成的項目不影響預算（預算為預估值）
+    </div>
+  </div>
+</div>
+
+<!-- 確認 Modal -->
+<div class="modal-bg" id="confirmModal" onclick="if(event.target===this) closeModal('confirmModal')">
+  <div class="modal confirm-modal">
+    <h2 id="confirmTitle">確定？</h2>
+    <div class="q" id="confirmMsg"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('confirmModal')">取消</button>
+      <button class="btn-primary" id="confirmOk">確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分享 Modal -->
+<div class="modal-bg" id="shareModal" onclick="if(event.target===this) closeModal('shareModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+    <h2>🔗 分享行程連結</h2>
+    <p class="sub">連結內含整個行程（標題、景點、筆記等）</p>
+
+    <label class="field-label">分享連結</label>
+    <div class="share-url-box" id="shareUrlBox">產生中...</div>
+    <div class="share-size" id="shareSize"></div>
+
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('shareModal')">關閉</button>
+      <button class="btn-primary" onclick="copyShareUrl()">📋 複製連結</button>
+    </div>
+
+    <div class="modal-hint">
+      💡 收到連結的人打開網址即可看到你的行程（只讀模式）<br>
+      💡 照片不會包含在連結中（檔案太大），只會分享文字內容<br>
+      ⚠️ 連結較長，建議用 LINE / Messenger 傳送，而非簡訊
+    </div>
+  </div>
+</div>
+
+<!-- 設定 Modal (城市/天氣) -->
+<div class="modal-bg" id="settingsModal" onclick="if(event.target===this) closeModal('settingsModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('settingsModal')">×</button>
+    <h2>⚙️ 天氣設定</h2>
+    <p class="sub">設定城市座標以獲取天氣預報</p>
+
+    <label class="field-label">城市名稱 (顯示用)</label>
+    <input class="input" id="fCityName" placeholder="例：東京">
+
+    <div class="row-2">
+      <div>
+        <label class="field-label">緯度</label>
+        <input type="number" step="0.0001" class="input" id="fLat" placeholder="35.6762">
+      </div>
+      <div>
+        <label class="field-label">經度</label>
+        <input type="number" step="0.0001" class="input" id="fLon" placeholder="139.6503">
+      </div>
+    </div>
+
+    <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+      <button class="btn-mini" onclick="setCity('東京', 35.6762, 139.6503)">東京</button>
+      <button class="btn-mini" onclick="setCity('京都', 35.0116, 135.7681)">京都</button>
+      <button class="btn-mini" onclick="setCity('大阪', 34.6937, 135.5023)">大阪</button>
+      <button class="btn-mini" onclick="setCity('首爾', 37.5665, 126.9780)">首爾</button>
+      <button class="btn-mini" onclick="setCity('台北', 25.0330, 121.5654)">台北</button>
+      <button class="btn-mini" onclick="setCity('曼谷', 13.7563, 100.5018)">曼谷</button>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal('settingsModal')">取消</button>
+      <button class="btn-primary" onclick="saveSettings()">儲存並更新天氣</button>
+    </div>
+
+    <div class="modal-hint">
+      💡 天氣資料由 Open-Meteo 提供（免費、免 API Key）<br>
+      💡 只會顯示行程範圍內的日子<br>
+      ⚠️ 天氣預報最多 16 天，若日期太遠會顯示「無資料」
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="close-lb" onclick="closeLightbox(); event.stopPropagation()">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 隱藏的檔案匯入 -->
+<input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="handleImport(event)">
+
+<script>
+"use strict";
+
+// ==================== 預設資料 ====================
+const DEFAULT_TRIP = {
+  title: "東京 9 日｜漫步季節",
+  subtitle: "— 住宿：相鐵 Fresa Inn 大門站前 —",
+  city: { name: "東京", lat: 35.6762, lon: 139.6503 },
+  days: [
+    {
+      day: 1, date: "6/13 (六)", title: "抵達東京",
+      subtitle: "成田機場 → 東京鐵塔夜景",
+      items: [
+        {time:"17:00", name:"成田機場 NRT", type:"景點", duration:"60分",
+         note:"入境、領行李、取 Suica、換現金", transport:"",
+         tip:"⚠️ 下載 Google Maps 離線地圖、Tokyo Subway 路線圖",
+         notes:"", budget:0, done:false},
+        {time:"18:04", name:"Access 特急", type:"交通", duration:"90分",
+         note:"京成 Access 特急 → 都營淺草線 直達大門",
+         transport:"成田→大門 ¥1,340",
+         tip:"📍 B1 京成線月台｜💡 不需另購 Skyliner",
+         notes:"", budget:1340, done:false},
+        {time:"19:40", name:"相鐵 Fresa Inn 大門站前", type:"景點", duration:"60分",
+         note:"Check-in、放行李、換輕便衣物",
+         transport:"大門站 B2 出口步行 3-5 分",
+         tip:"⚠️ 大門站 A1 出口往東京鐵塔方向",
+         notes:"", budget:0, done:false},
+        {time:"20:30", name:"東京鐵塔 + 晚餐", type:"景點", duration:"90分",
+         note:"推薦：\n① 紅葉屋（一樓美食街日式定食）\n② Shiba Tofuya Ukai（豆腐懷石，需預約）\n③ 芝公園便利商店 + 公園看鐵塔",
+         transport:"大門→赤羽橋 步行 12分 / 大江戶線 1站 ¥180",
+         tip:"📸 東京鐵塔拍攝機位大全（可分兩次拍）：\n\n【晚上／傍晚最推】\n・麻布台 Hills 34F：\n  https://maps.app.goo.gl/Nn1TQXaXaYQXVK5x9\n  （有玻璃會反光，傍晚最美）\n・六本木 Hills 展望台：\n  https://maps.app.goo.gl/F7R5xkn9aJeJM1Tn9\n\n【鐵塔周邊經典機位】\n・Google 地點對面樓梯上去：\n  https://maps.app.goo.gl/mNBU9qc2qQoZA85w9\n・芝豆腐屋うかい對面樓梯：\n  https://maps.app.goo.gl/RaJbbzBpLNVe6Y1z9\n・赤羽橋站 E21 出口\n・芝給水所公園：\n  https://maps.app.goo.gl/ddZfPh9EiPgKeFUQA\n・濱松町駅旁邊單車場\n\n💡 鐵塔點燈至 23:00",
+         notes:"", budget:3500, done:false},
+        {time:"22:30", name:"回飯店休息", type:"交通", duration:"—",
+         note:"便利商店買早餐、水、冰淇淋再回房",
+         transport:"赤羽橋→大門 步行 12分",
+         tip:"", notes:"", budget:0, done:false}
+      ],
+      summary:["✅ 機場提領 Suica/PASMO、換日圓（建議 ¥30,000 現金起）",
+               "✅ APP：Google Maps、Yahoo 乘換案內、Tokyo Disney Resort",
+               "📸 東京鐵塔經典機位：芝公園 4 號地（往南走 5 分）"]
+    },
+    {
+      day: 2, date: "6/14 (日)", title: "東京經典",
+      subtitle: "淺草寺 → 晴空塔 → 秋葉原",
+      items: [
+        {time:"08:30", name:"早餐", type:"用餐", duration:"45分",
+         note:"便利商店或附近早餐店\n推薦：Starbucks 浜松町、CAFÉ LEXCEL",
+         transport:"", tip:"💡 今日行程長，建議吃飽再出門",
+         notes:"", budget:800, done:false},
+        {time:"09:30", name:"淺草寺・雷門", type:"景點", duration:"150分",
+         note:"雷門→仲見世通→寶藏門→本堂\n順遊：淺草文化觀光中心 8F 免費展望台\n吃：梅園甜點、大黑家天婦羅",
+         transport:"大門→淺草（淺草線直達）15分 ¥280",
+         tip:"📸 拍照重點：\n・雷門大燈籠正面（早上人少）\n・淺草文化觀光中心 8F（可同時拍雷門+晴空塔）：\n  https://maps.app.goo.gl/TA66K78ZGtjHZedd8\n・仲見世通人力車\n\n⚠️ 週日超擠，9:30 前到",
+         mapUrl:"https://maps.app.goo.gl/TA66K78ZGtjHZedd8",
+         photos:[],
+         notes:"", budget:2000, done:false},
+        {time:"12:30", name:"午餐：淺草", type:"用餐", duration:"60分",
+         note:"推薦：\n① 淺草今半（壽喜燒老店）¥3,000-5,000\n② 並木藪蕎麥（冷蕎麥麵）¥1,200\n③ 淺草 Menchi（炸肉餅排隊名店）¥500",
+         transport:"", tip:"💡 蕎麥麵/炸肉餅排隊較快",
+         notes:"", budget:1500, done:false},
+        {time:"13:30", name:"晴空塔 SKYTREE", type:"景點", duration:"180分",
+         note:"展望台 350m/450m + Solamachi 購物中心\n必逛：三麗鷗、寶可夢、JUMP SHOP",
+         transport:"淺草→押上（押上線）3分 ¥180",
+         tip:"📸 晴空塔拍攝機位：\n・十間橋倒影晴空塔（最經典，押上站步行 10 分）\n・新仲見世商店街（淺草）\n・淺草文化觀光中心 8F（免費）：\n  https://maps.app.goo.gl/TA66K78ZGtjHZedd8\n・小紅書詳細機位：\n  http://xhslink.com/o/AtFY0bmce1c\n\n⚠️ 線上購票省 ¥400",
+         notes:"", budget:2700, done:false},
+        {time:"17:00", name:"秋葉原", type:"景點", duration:"150分",
+         note:"YODOBASHI Akiba、友都八喜、Bic Camera\nGACHA GACHA 扭蛋、Animate、Mandarake",
+         transport:"押上→淺草橋（淺草線）¥220\n淺草橋→秋葉原（JR）¥150",
+         tip:"📸 中央通路口（週日 13-18 點步行者天國）\n💡 扭蛋備 ¥100/¥500 零錢",
+         notes:"", budget:1500, done:false},
+        {time:"19:30", name:"晚餐：秋葉原", type:"用餐", duration:"60分",
+         note:"推薦：\n① 肉之萬世（牛排漢堡排老店）\n② 鹽元帥拉麵\n③ GUNDAM Café 主題餐廳",
+         transport:"", tip:"", notes:"", budget:2000, done:false},
+        {time:"20:30", name:"上野站南口（電車景）", type:"拍照", duration:"30分",
+         note:"上野站南口為拍攝 JR 電車進站 / 離站的經典機位\n多線交會（山手線、京濱東北、上野東京 Line）班次密集，好拍",
+         transport:"秋葉原→上野（JR 山手線）4分 ¥170",
+         tip:"📸 上野站南口電車景：\n・站前天橋可俯瞰軌道\n・夜晚車燈拉線流動感最美\n・多線並行畫面超豐富\n\n💡 三腳架不建議（人來人往）\n💡 建議快門 1/60 以下捕捉動感",
+         notes:"", budget:170, done:false},
+        {time:"21:00", name:"回飯店", type:"交通", duration:"—",
+         note:"",
+         transport:"上野→新橋（JR 山手線）10分 ¥210\n新橋→大門（淺草線）2分 ¥180",
+         tip:"💡 JR 末班車前注意時間",
+         notes:"", budget:390, done:false}
+      ],
+      summary:["⚠️ 晴空塔建議線上購票（Klook/官網）",
+               "📸 十間橋（押上站步行 10 分）拍晴空塔最美",
+               "📸 上野站南口為東京電車景必拍機位",
+               "💡 秋葉原週日 13:00-18:00 中央通步行者天國"]
+    },
+    {
+      day: 3, date: "6/15 (一)", title: "都心漫遊",
+      subtitle: "皇居外苑 → 東京車站 → 銀座",
+      items: [
+        {time:"09:00", name:"飯店出發", type:"交通", duration:"—",
+         note:"輕裝出門，今日行程較悠閒", transport:"", tip:"",
+         notes:"", budget:0, done:false},
+        {time:"10:00", name:"皇居外苑 / 二重橋", type:"景點", duration:"90分",
+         note:"二重橋、伏見櫓、楠木正成像、和田倉噴水公園",
+         transport:"大門→日本橋（淺草線）→三越前（銀座線）¥220",
+         tip:"📸 二重橋正面（經典必拍）、櫓倒映護城河\n⚠️ 皇居內部需事前預約",
+         notes:"", budget:220, done:false},
+        {time:"11:30", name:"KITTE / 東京車站", type:"景點", duration:"90分",
+         note:"KITTE 丸之內商場、6F 屋頂花園\n丸之內站舍紅磚建築\n東京一番街（吉卜力、JUMP SHOP、拉麵街）",
+         transport:"皇居步行至東京車站 10 分",
+         tip:"📸 KITTE 6F 屋頂俯瞰東京車站全景（免費）\n⚠️ KITTE Garden 開放至 23:00",
+         notes:"", budget:0, done:false},
+        {time:"13:00", name:"午餐：東京車站", type:"用餐", duration:"75分",
+         note:"推薦：\n① 東京拉麵街（六厘舍沾麵）\n② KITTE B1 グランスタ\n③ 新丸大樓 7F 景觀餐廳",
+         transport:"", tip:"💡 六厘舍午餐排隊，建議 11:30 前或 14:00 後",
+         notes:"", budget:1800, done:false},
+        {time:"14:30", name:"銀座散策", type:"購物", duration:"180分",
+         note:"和光百貨、GINZA SIX、伊東屋文具\nTokyu Plaza KIRIKO、無印良品旗艦、Uniqlo 旗艦",
+         transport:"東京車站→銀座（丸之內線）¥180",
+         tip:"📸 和光百貨鐘樓（四丁目）、GINZA SIX 屋頂花園\n⚠️ 週末中央通 12-18 點步行者天國",
+         notes:"", budget:300, done:false},
+        {time:"17:30", name:"銀座咖啡小憩", type:"咖啡", duration:"60分",
+         note:"① Cafe Paulista（百年老店）\n② HIGASHIYA GINZA（和菓子+抹茶）\n③ Henri Charpentier 銀座本店",
+         transport:"", tip:"", notes:"", budget:1500, done:false},
+        {time:"18:30", name:"晚餐：銀座", type:"用餐", duration:"90分",
+         note:"推薦：\n① 銀座木村屋（紅豆麵包祖師爺）\n② 銀座 Lion 啤酒館（百年建築）\n③ 迴轉壽司：根室花丸",
+         transport:"", tip:"💡 銀座 Lion 建築內部必看",
+         notes:"", budget:3000, done:false},
+        {time:"21:00", name:"回飯店", type:"交通", duration:"—",
+         note:"",
+         transport:"銀座→新橋（銀座線）→大門（淺草線）¥220",
+         tip:"💡 早點休息，明天富士山早起",
+         notes:"", budget:220, done:false}
+      ],
+      summary:["📸 KITTE 6F 屋頂是拍東京車站最佳免費角度",
+               "⚠️ 週一部分博物館休館，戶外+購物正好",
+               "💡 今晚早睡，明天 6:00 要到新宿搭巴士",
+               "⚠️ 富士山巴士票務必提前線上預訂"]
+    },
+    {
+      day: 4, date: "6/16 (二)", title: "富士山河口湖",
+      subtitle: "平野之濱 → 日川時計店 → 下吉田 → 新宿回憶橫町",
+      items: [
+        {time:"05:30", name:"飯店出發", type:"交通", duration:"—",
+         note:"輕裝出門（背包+相機+水）\n早餐：便利商店（車上吃）",
+         transport:"", tip:"⚠️ 前晚檢查：巴士車票、備用折傘",
+         notes:"", budget:500, done:false},
+        {time:"06:00", name:"大門→新宿高速巴士總站", type:"交通", duration:"40分",
+         note:"到新宿後步行至 Busta 新宿（JR 新南口 4F）",
+         transport:"大門→新宿（大江戶線）28分 ¥290",
+         tip:"⚠️ 新宿巴士總站在 JR 新南口 4F\n⚠️ 6:45 前必到",
+         notes:"", budget:290, done:false},
+        {time:"07:00", name:"搭富士山巴士", type:"交通", duration:"135分",
+         note:"富士急行巴士 → 富士五湖方向，平野站下車",
+         transport:"新宿→平野站 約 2h15m ¥2,200（建議線上預訂）",
+         tip:"💡 左側座位可看到富士山\n💡 可補眠",
+         notes:"", budget:2200, done:false},
+        {time:"09:15", name:"平野之濱", type:"拍照", duration:"100分",
+         note:"山中湖畔步道\n富士山 + 天鵝 + 湖景最佳構圖",
+         transport:"平野巴士站下車即到",
+         tip:"📸 湖邊白色長椅、富士山倒影（上午光線最佳）\n⚠️ 梅雨季雲霧要賭運氣",
+         notes:"", budget:0, done:false},
+        {time:"11:00", name:"早午餐", type:"用餐", duration:"75分",
+         note:"選一：\n① THE PARK（湖畔景觀咖啡）\n② Noah Cafe（山中湖人氣店）",
+         transport:"步行或短程計程車 ¥500-1,000",
+         tip:"💡 The Park 戶外露台視野更好",
+         notes:"", budget:2000, done:false},
+        {time:"12:30", name:"長池親水公園→白鳥之濱", type:"拍照", duration:"60分",
+         note:"白鳥之濱：富士山經典拍照點",
+         transport:"平野之濱→長池親水公園 巴士 10 分 ¥200",
+         tip:"📸 富士山倒映湖面經典機位",
+         notes:"", budget:200, done:false},
+        {time:"13:30", name:"日川時計店", type:"拍照", duration:"40分",
+         note:"富士山 + 本町通 + 時計店的經典角度\n《跳躍吧！時空少女》取景地",
+         transport:"長池→富士山站/下吉田（富士急行線）",
+         tip:"📸 本町通筆直望向富士山\n⚠️ 周圍住家，勿喧嘩",
+         notes:"", budget:0, done:false},
+        {time:"14:30", name:"下吉田 / 新倉山淺間公園", type:"拍照", duration:"90分",
+         note:"忠靈塔前拍富士山（日本最具代表性明信片畫面）\n爬階梯約 400 階 15 分",
+         transport:"下吉田站步行到公園 15分",
+         tip:"📸 忠靈塔 + 富士山經典構圖\n⚠️ 需爬樓梯",
+         notes:"", budget:400, done:false},
+        {time:"16:11", name:"下吉田→河口湖", type:"交通", duration:"20分",
+         note:"", transport:"富士急行線 約 20分 ¥300",
+         tip:"📸 沿途可拍火車+富士山",
+         notes:"", budget:300, done:false},
+        {time:"17:30", name:"河口湖漫步", type:"景點", duration:"60分",
+         note:"文創店、湖畔散步\n可考慮：天上山纜車、音樂盒之森、Fujiyama Cookie",
+         transport:"", tip:"💡 視時間決定是否登天上山",
+         notes:"", budget:1200, done:false},
+        {time:"18:38", name:"河口湖→新宿", type:"交通", duration:"120分",
+         note:"高速巴士回新宿，車上補眠",
+         transport:"河口湖→新宿 約 2h ¥2,100（同樣建議線上預訂）",
+         tip:"⚠️ 回程票務必提前買",
+         notes:"", budget:2100, done:false},
+        {time:"21:00", name:"新宿回憶橫町", type:"用餐", duration:"90分",
+         note:"小巷居酒屋 + 串燒 + 拉麵\n推薦：鳥園烤雞串、燒鳥加德、岐阜屋",
+         transport:"",
+         tip:"📸 新宿拍照機位（吃完順遊）：\n・思出橫丁（回憶橫町本體）：\n  https://maps.app.goo.gl/WWoC2XtYSmMTKRjm8\n・歌舞伎町一番街（紅色招牌地標）：\n  https://maps.app.goo.gl/GEjxzk7QRu1PVs9y5\n・新宿麥當勞（3F 可拍外面街景）：\n  https://maps.app.goo.gl/RFK8vJLn6StBJ9YeA\n\n⚠️ 座位小，兩人同桌正常",
+         notes:"", budget:3000, done:false},
+        {time:"23:00", name:"回大門飯店", type:"交通", duration:"—",
+         note:"", transport:"新宿→大門（大江戶線）¥290",
+         tip:"💡 好好泡澡休息",
+         notes:"", budget:290, done:false}
+      ],
+      summary:["⚠️【最重要】Highway Bus 去程/回程都要提前訂票",
+               "💡 富士山可見機率：早上 >> 下午",
+               "💡 梅雨季壞天氣備案：改箱根或江之島",
+               "📸 忠靈塔+富士山是此行最代表性明信片構圖"]
+    },
+    {
+      day: 5, date: "6/17 (三)", title: "藝文時尚",
+      subtitle: "根津美術館 → 表參道/原宿 → SHIBUYA SKY 夕陽",
+      items: [
+        {time:"09:15", name:"飯店出發", type:"交通", duration:"—",
+         note:"今日重點：藝術 + 時尚 + 日落", transport:"",
+         tip:"⚠️ 務必訂好 SHIBUYA SKY 18:00-19:00 時段門票",
+         notes:"", budget:500, done:false},
+        {time:"10:00", name:"根津美術館", type:"景點", duration:"150分",
+         note:"隈研吾設計建築\n入口竹林長廊（超好拍）\n日式庭園 17,000㎡\nNEZU CAFÉ、館藏 7 件國寶",
+         transport:"大門→表參道（大江戶線→半藏門線，青山一丁目換）¥290\n表參道站 A5 出口步行 8分",
+         tip:"📸 入口竹林長廊、庭園石燈籠、NEZU CAFÉ 玻璃窗\n⚠️ 官網預約制、週一休館\n⚠️ 咖啡廳 16:30 打烊",
+         notes:"", budget:1500, done:false},
+        {time:"12:30", name:"午餐：表參道", type:"用餐", duration:"75分",
+         note:"推薦：\n① Maisen 豬排青山本店\n② Eggs'n Things 原宿\n③ A to Z Cafe（奈良美智）\n④ Bills 表參道",
+         transport:"", tip:"💡 Maisen 和 Bills 要排隊",
+         notes:"", budget:2500, done:false},
+        {time:"14:00", name:"表參道 / 原宿", type:"購物", duration:"180分",
+         note:"表參道之丘（安藤忠雄）、Prada 青山\nHuman Made、Amore Vintage、Kith Tokyo\n竹下通 / 貓街（裏原宿）",
+         transport:"根津美術館→表參道 步行 8分",
+         tip:"📸 表參道之丘外牆、Dior 玻璃磚、銀杏街景\n💡 古著店集中貓街",
+         notes:"", budget:500, done:false},
+        {time:"17:00", name:"前往澀谷", type:"交通", duration:"30分",
+         note:"建議步行（約 15 分穿過貓街）",
+         transport:"明治神宮前→澀谷（副都心線）¥180\n或步行經貓街 15分",
+         tip:"💡 B6 出口直通 Scramble Square",
+         notes:"", budget:180, done:false},
+        {time:"17:30", name:"Scramble Square 14F 報到", type:"景點", duration:"30分",
+         note:"14F 驗票、置物、搭 Sky Gate 直達 45F",
+         transport:"",
+         tip:"⚠️ 大型行李/帽子/圍巾/三腳架不可上 47F\n💡 置物櫃 ¥100 可退幣",
+         notes:"", budget:0, done:false},
+        {time:"18:00", name:"SHIBUYA SKY", type:"拍照", duration:"120分",
+         note:"47F SKY STAGE（屋頂開放式）\n46F SKY GALLERY（室內）\n特展：Flowing Flowers（5/14-6/30 限定）",
+         transport:"",
+         tip:"📸 SHIBUYA SKY 機位：\n・Sky Edge（無敵邊界）\n・旋轉樓梯\n・澀谷十字路口俯瞰\n・地點：https://maps.app.goo.gl/8G1LrikUzTuFFtJN8\n\n⚠️ 15 點後票價較貴 ¥3,400\n💡 日落前 30 分最精華",
+         mapUrl:"https://maps.app.goo.gl/8G1LrikUzTuFFtJN8",
+         photos:[],
+         notes:"", budget:3400, done:false},
+        {time:"20:15", name:"澀谷 109 / 街景", type:"景點", duration:"45分",
+         note:"澀谷 109、十字路口、STARBUCKS TSUTAYA、MAG'S PARK（109-2 天台免費）",
+         transport:"",
+         tip:"📸 澀谷十字路口機位：\n・從 Starbucks TSUTAYA 2F 內拍（最經典）\n・MAG'S PARK（109-2 天台，免費俯瞰）\n・地圖：https://maps.app.goo.gl/AoZZznACNDfpfxwb9",
+         notes:"", budget:0, done:false},
+        {time:"21:00", name:"晚餐：澀谷", type:"用餐", duration:"75分",
+         note:"推薦：\n① 焼肉ホルモン KINTAN\n② 一蘭拉麵 澀谷店\n③ 立呑み 晩杯屋\n④ Mega 唐吉訶德澀谷本店",
+         transport:"", tip:"", notes:"", budget:2500, done:false},
+        {time:"22:30", name:"回飯店", type:"交通", duration:"—",
+         note:"",
+         transport:"澀谷→大門（銀座線→淺草線，新橋換）¥220",
+         tip:"💡 明天要早起去迪士尼",
+         notes:"", budget:220, done:false}
+      ],
+      summary:["⚠️ 根津美術館：官網預約制，選 10:00-11:00 時段",
+               "⚠️ SHIBUYA SKY：28 天前開賣，選 17:40-18:00 時段",
+               "📸 6 月日落約 19:00",
+               "⚠️ 上 SHIBUYA SKY 不可帶大行李/帽子/圍巾"]
+    },
+    {
+      day: 6, date: "6/18 (四)", title: "迪士尼海洋",
+      subtitle: "東京迪士尼海洋 (全日) → 晚間煙火",
+      items: [
+        {time:"06:00", name:"飯店出發", type:"交通", duration:"—",
+         note:"簡易早餐（便利商店）\n輕裝！只帶：手機、行動電源、折傘、防曬、小背包",
+         transport:"",
+         tip:"⚠️ 前晚：下載 Tokyo Disney Resort APP、綁定票 QR、手機充飽",
+         notes:"", budget:500, done:false},
+        {time:"06:30", name:"前往迪士尼海洋", type:"交通", duration:"60分",
+         note:"大門→東京→舞濱→DisneySea 站",
+         transport:"淺草線→JR 京葉線→度假區線 約 50分 ¥530",
+         tip:"⚠️ 京葉線月台距離 JR 東京站主月台步行 10 分",
+         notes:"", budget:530, done:false},
+        {time:"07:40", name:"到達園區排隊", type:"景點", duration:"80分",
+         note:"官方 09:00 開園，實際 08:30 可能提早",
+         transport:"",
+         tip:"⚠️ 7:40 前到可搶前排\n💡 入園後立刻：買 DPA、抽 PP、看 Standby Pass",
+         notes:"", budget:0, done:false},
+        {time:"09:00", name:"入園 + 夢幻泉鄉", type:"景點", duration:"210分",
+         note:"新園區夢幻泉鄉（2024 新開幕）：\n・冰雪女王之旅（DPA 必買）\n・魔髮奇緣高塔\n・彼得潘冒險\n・夢幻海灘餐廳",
+         transport:"",
+         tip:"📸 阿倫戴爾城堡、魔髮奇緣高塔、燈塔\n⚠️ 冰雪女王為全園最熱門",
+         notes:"", budget:2000, done:false},
+        {time:"12:30", name:"午餐", type:"用餐", duration:"60分",
+         note:"推薦：\n① Magellan's（法式正餐）\n② Horizon Bay\n③ Cape Cod Cook-Off\n④ Mamma Biscotti's",
+         transport:"",
+         tip:"💡 人氣餐廳 APP 先預約\n💡 爆米花桶：達菲、米奇各色限定",
+         notes:"", budget:2500, done:false},
+        {time:"14:00", name:"必玩設施", type:"景點", duration:"210分",
+         note:"遊玩順序：\n・翱翔：夢幻奇航（DPA）\n・地心探險之旅（DPA）\n・驚魂古塔（DPA）\n・玩具總動員（DPA）\n・印第安納瓊斯\n・海底兩萬哩",
+         transport:"",
+         tip:"📸 威尼斯貢多拉、普羅米修斯火山\n⚠️ DPA 一次一張，用完才能買下一張",
+         notes:"", budget:3000, done:false},
+        {time:"17:30", name:"Duffy & Friends 商店", type:"購物", duration:"60分",
+         note:"達菲只有東京海洋買得到\n建議：McDuck's、Emporio",
+         transport:"",
+         tip:"💡 熱門週邊下午就缺貨\n💡 爆米花桶當週邊超值",
+         notes:"", budget:4000, done:false},
+        {time:"18:30", name:"晚餐", type:"用餐", duration:"60分",
+         note:"推薦：\n① New York Deli\n② Zambini Brothers'\n③ Ristorante di Canaletto（威尼斯景觀）",
+         transport:"",
+         tip:"💡 晚餐後主題區燈光亮起",
+         notes:"", budget:2500, done:false},
+        {time:"20:00", name:"夜間表演 + 煙火", type:"景點", duration:"90分",
+         note:"必看：\n・Believe! Sea of Dreams（地中海港灣夜間秀）\n・晚間煙火（約 20:30-21:00）",
+         transport:"",
+         tip:"📸 最佳觀賞點：港灣中央台階、米蘭廣場\n⚠️ 好位置需 30-60 分前佔",
+         notes:"", budget:0, done:false},
+        {time:"21:30", name:"園區最後巡禮", type:"購物", duration:"30分",
+         note:"買最後伴手禮，商店營業到閉園",
+         transport:"", tip:"", notes:"", budget:1000, done:false},
+        {time:"22:00", name:"回飯店", type:"交通", duration:"50分",
+         note:"",
+         transport:"DisneySea 站→舞濱→東京→大門 ¥530",
+         tip:"⚠️ 閉園後 JR 會爆滿\n💡 錯峰 30 分再走比較舒服",
+         notes:"", budget:530, done:false}
+      ],
+      summary:["⚠️【必做】門票：Klook/官網 指定日入園券",
+               "⚠️【必做】前晚下載 Tokyo Disney Resort APP 綁定 QR",
+               "💡 DPA ¥1,500-2,500，入園後 APP 購買（翱翔、冰雪女王最熱門）",
+               "⚠️ 達菲系列商品只有 DisneySea 買得到"]
+    },
+    {
+      day: 7, date: "6/19 (五)", title: "鎌倉江之島",
+      subtitle: "長谷寺紫陽花 → 鎌倉高校前 → 江之島",
+      items: [
+        {time:"07:30", name:"飯店出發", type:"交通", duration:"—",
+         note:"早餐後出發\n建議：輕便好走鞋 + 防曬",
+         transport:"", tip:"💡 紫陽花季鎌倉超擠，越早越好",
+         notes:"", budget:500, done:false},
+        {time:"08:00", name:"大門→鎌倉", type:"交通", duration:"75分",
+         note:"",
+         transport:"大門→新橋（淺草線）2分\n新橋→鎌倉（JR 東海道/橫須賀線）60分 ¥940",
+         tip:"⚠️ 鎌倉站購買【江之電一日券】¥800",
+         notes:"", budget:940, done:false},
+        {time:"09:30", name:"鎌倉站→長谷站", type:"交通", duration:"15分",
+         note:"換搭江之電前往長谷",
+         transport:"鎌倉→長谷（江之電）5分（含一日券）",
+         tip:"📸 江之電窗景本身就是一道風景",
+         notes:"", budget:800, done:false},
+        {time:"10:00", name:"長谷寺（紫陽花）", type:"景點", duration:"150分",
+         note:"あじさい路（40+ 品種 2,500 株）\n本堂、觀音菩薩像\n見晴台（由比濱海景）、和み地藏",
+         transport:"長谷站步行 5分",
+         tip:"⚠️【重要】紫陽花路整理券 ¥500（+拜觀料 ¥400）\n⚠️ 9 點前人少，11 點後排隊 1-2 小時\n📸 紫陽花路俯瞰海 + 寺院屋簷",
+         notes:"", budget:900, done:false},
+        {time:"12:30", name:"午餐：鎌倉街區", type:"用餐", duration:"75分",
+         note:"推薦：\n① 鎌倉松原庵（蕎麥麵名店）\n② 段葛こ寿々\n③ Bills 七里ヶ浜（海景鬆餅）\n④ Yoridokoro 鯛魚飯定食",
+         transport:"長谷駅周邊",
+         tip:"💡 鎌倉大佛就在旁邊，時間夠可順遊 ¥300",
+         notes:"", budget:2000, done:false},
+        {time:"14:00", name:"長谷→七里濱", type:"交通", duration:"15分",
+         note:"海邊咖啡 + 散步",
+         transport:"長谷→七里ヶ浜（江之電）10分（含一日券）",
+         tip:"📸 Pacific Drive-in、海岸線公路 + 富士山",
+         notes:"", budget:0, done:false},
+        {time:"15:00", name:"鎌倉高校前（灌籃高手）", type:"拍照", duration:"60分",
+         note:"鎌倉高校前平交道\n《灌籃高手》OP 經典場景",
+         transport:"七里ヶ浜→鎌倉高校前（江之電）3分（含一日券）",
+         tip:"📸 平交道+江之電+海景（等平交道放下時）\n⚠️ 勿站馬路中央、勿擋道\n⚠️ 當地居民區，請勿喧嘩",
+         notes:"", budget:0, done:false},
+        {time:"16:00", name:"江之島", type:"景點", duration:"120分",
+         note:"辨財天仲見世通、江之島神社、展望燈塔\n稚兒之淵、岩屋洞窟\n必吃：生しらす丼、章魚仙餅、女夫饅頭",
+         transport:"鎌倉高校前→江之島（江之電）7分（含一日券）\n步行到江之島 10-15分",
+         tip:"📸 江之島大橋 + 富士山、燈塔夕陽\n⚠️ 山頂電扶梯上行收費",
+         notes:"", budget:1800, done:false},
+        {time:"18:30", name:"江之島夕陽", type:"拍照", duration:"30分",
+         note:"夕陽時間約 19:00",
+         transport:"",
+         tip:"📸 天氣好可看到富士山剪影",
+         notes:"", budget:0, done:false},
+        {time:"19:00", name:"回程晚餐", type:"用餐", duration:"60分",
+         note:"推薦：\n① 江之島 Oppa-Terrace 夜景\n② 藤澤站前\n③ 新宿吃好料",
+         transport:"", tip:"", notes:"", budget:2500, done:false},
+        {time:"20:30", name:"江之島→大門", type:"交通", duration:"90分",
+         note:"",
+         transport:"江之島→藤澤（江之電）含一日券\n藤澤→新宿（小田急快速急行）55分 ¥640\n新宿→大門（大江戶線）¥290",
+         tip:"💡 車上補眠，回飯店泡腳",
+         notes:"", budget:930, done:false}
+      ],
+      summary:["⚠️【必備】江之電一日券 ¥800",
+               "⚠️ 紫陽花路整理券 ¥500，建議 9 點前到",
+               "📸 長谷寺紫陽花俯瞰海、鎌倉高校前平交道",
+               "⚠️ 鎌倉高校前拍照勿佔車道，尊重居民"]
+    },
+    {
+      day: 8, date: "6/20 (六)", title: "復古潮流",
+      subtitle: "下北澤 → 中野 → 新宿補貨 → 汐留夜拍",
+      items: [
+        {time:"09:30", name:"飯店出發", type:"交通", duration:"—",
+         note:"悠閒早餐\n今日重點：古著 + 補貨 + 夜拍",
+         transport:"", tip:"💡 今天是購物大日",
+         notes:"", budget:800, done:false},
+        {time:"10:00", name:"下北澤", type:"購物", duration:"240分",
+         note:"必逛：\n・New York Joe Exchange（古著天花板）\n・Flamingo、Chicago 古著\n・東洋百貨店（多店聚集）\n・bonus track 複合設施",
+         transport:"大門→下北澤 約 35分 ¥350",
+         tip:"📸 南口商店街塗鴉牆、古著店門面\n💡 週末 11 點前逛較舒服",
+         notes:"", budget:350, done:false},
+        {time:"13:00", name:"午餐：下北澤", type:"用餐", duration:"75分",
+         note:"推薦：\n① Magic Spice（北海道湯咖哩）\n② The Workers Coffee\n③ 麵屋 在（濃厚醬油拉麵）",
+         transport:"", tip:"", notes:"", budget:1500, done:false},
+        {time:"15:00", name:"下北澤→中野", type:"交通", duration:"30分",
+         note:"",
+         transport:"下北澤→明大前→新宿→中野 約 30分 ¥290",
+         tip:"💡 不是動漫迷可跳過，直接去新宿",
+         notes:"", budget:290, done:false},
+        {time:"15:30", name:"中野 BROADWAY", type:"購物", duration:"90分",
+         note:"MANDARAKE（二手動漫聖地）\n二手扭蛋/模型/卡片、絕版公仔\n復古手錶、古著",
+         transport:"中野站北口步行 5分",
+         tip:"📸 BROADWAY 入口招牌、二手店奇妙陳列\n💡 比秋葉原便宜很多",
+         notes:"", budget:2000, done:false},
+        {time:"17:00", name:"新宿最後補貨", type:"購物", duration:"120分",
+         note:"伊勢丹、高島屋、Lumine EST\nBICQLO（UNIQLO+BIC）、唐吉訶德、松本清",
+         transport:"中野→新宿（JR 中央線）4分 ¥170",
+         tip:"📸 新宿拍照機位（順遊）：\n・新都心步道（白天必拍）：\n  https://maps.app.goo.gl/srBgWFPGdw7pr6kf7\n・歌舞伎町一番街（晚上紅招牌）：\n  https://maps.app.goo.gl/GEjxzk7QRu1PVs9y5\n・新宿麥當勞 3F 可拍街景：\n  https://maps.app.goo.gl/RFK8vJLn6StBJ9YeA\n・思出橫丁：\n  https://maps.app.goo.gl/WWoC2XtYSmMTKRjm8\n\n💡 藥妝湊 ¥5,000 免稅\n💡 百貨 20:00 打烊，唐吉訶德 24H",
+         notes:"", budget:170, done:false},
+        {time:"19:00", name:"晚餐：新宿", type:"用餐", duration:"75分",
+         note:"推薦：\n① 風林火山（蕎麥麵）\n② 鰻の成瀨（鰻魚飯）\n③ 博多 Motsunabe 大山",
+         transport:"", tip:"", notes:"", budget:3500, done:false},
+        {time:"20:30", name:"新宿→汐留", type:"交通", duration:"25分",
+         note:"大江戶線一線直達",
+         transport:"新宿→汐留（大江戶線）22分 ¥290",
+         tip:"", notes:"", budget:290, done:false},
+        {time:"21:00", name:"汐留義大利街", type:"拍照", duration:"60分",
+         note:"浪漫街燈、歐式建築、日本電視台總部\nCaretta 汐留（季節燈飾）",
+         transport:"汐留站步行 3分",
+         tip:"📸 街燈下義大利建築、運河夜景\n💡 人少夜景超好拍\n💡 情侶/電影感照片首選",
+         notes:"", budget:0, done:false},
+        {time:"22:00", name:"回飯店", type:"交通", duration:"15分",
+         note:"汐留離大門很近",
+         transport:"步行 15分 或大江戶線 1站 ¥180",
+         tip:"", notes:"", budget:0, done:false}
+      ],
+      summary:["💡 藥妝購物湊滿 ¥5,000 才免稅，帶護照",
+               "📸 汐留義大利街夜拍最具電影感",
+               "⚠️ 週六下北澤/新宿人潮多，保管好財物",
+               "💡 伴手禮：東京 Banana、ROYCE、白色戀人"]
+    },
+    {
+      day: 9, date: "6/21 (日)", title: "返程",
+      subtitle: "大門散步 → 藥妝補貨 → 成田機場",
+      items: [
+        {time:"08:30", name:"早餐", type:"用餐", duration:"60分",
+         note:"便利商店或附近早餐店\n整理行李、check 隨身物品",
+         transport:"",
+         tip:"⚠️ 確認：護照、登機證、日圓、錢包、充電線\n💡 預留購物空間",
+         notes:"", budget:800, done:false},
+        {time:"09:30", name:"大門周邊最後巡禮", type:"景點", duration:"120分",
+         note:"推薦：\n・增上寺（大門象徵性寺院）\n・東京鐵塔旁散步\n・大門商店街藥妝\n・便利商店買限定零食",
+         transport:"飯店附近步行",
+         tip:"📸 東京鐵塔早上機位（光線好適合補拍）：\n・增上寺 + 東京鐵塔經典構圖\n・Google 地點對面樓梯上去：\n  https://maps.app.goo.gl/mNBU9qc2qQoZA85w9\n・芝豆腐屋うかい對面樓梯：\n  https://maps.app.goo.gl/RaJbbzBpLNVe6Y1z9\n・赤羽橋 E21 出口\n・芝給水所公園：\n  https://maps.app.goo.gl/ddZfPh9EiPgKeFUQA\n・濱松町駅旁邊單車場\n\n💡 小補貨：泡麵、零食、即溶咖啡",
+         notes:"", budget:1500, done:false},
+        {time:"11:30", name:"退房", type:"交通", duration:"30分",
+         note:"飯店退房\n行李多可考慮宅配直送機場",
+         transport:"", tip:"💡 退房後可寄放行李",
+         notes:"", budget:0, done:false},
+        {time:"12:15", name:"大門→成田機場", type:"交通", duration:"100分",
+         note:"搭乘都營淺草線 Access 特急",
+         transport:"大門→成田 約 90分 ¥1,340",
+         tip:"⚠️ 前晚確認 Access 發車時刻\n⚠️ 趕不及備案：大門→日暮里→Skyliner",
+         notes:"", budget:1340, done:false},
+        {time:"14:00", name:"成田機場", type:"景點", duration:"150分",
+         note:"辦理登機、出境、免稅店購物、登機前吃東西",
+         transport:"",
+         tip:"⚠️ 國際線建議起飛前 2.5h 到\n💡 機場免稅：ROYCE、YOJIYA、Shiseido",
+         notes:"", budget:2000, done:false},
+        {time:"17:00", name:"登機回台北", type:"交通", duration:"—",
+         note:"登機、起飛", transport:"",
+         tip:"🎌 完美結束 9 日東京之旅！",
+         notes:"", budget:0, done:false}
+      ],
+      summary:["⚠️ 國際線起飛前 2.5 小時到機場",
+               "⚠️ Access 特急約 40 分一班，確認時刻",
+               "💡 日圓剩餘可換回台幣或保留下次用",
+               "🎌 願旅途順利！"]
+    }
+  ]
+};
+
+// ==================== 顏色與圖示 ====================
+const CATEGORY_COLOR = {
+  "景點": "#4a6b4a", "用餐": "#b8593a", "購物": "#8b6b47",
+  "咖啡": "#6b5a4a", "拍照": "#9b6a7a", "交通": "#7a7a7a"
+};
+const TAG_ICON = {
+  "景點": "◎", "用餐": "🍴", "購物": "✦",
+  "咖啡": "☕", "拍照": "📷", "交通": ">"
+};
+
+// ==================== 狀態 ====================
+const STORAGE_KEY = "trip_editor_v1";
+let trip = null;       // 整個行程資料
+let editCtx = {};      // 當前編輯上下文 { type, dayIndex, itemIndex }
+let confirmCallback = null;
+let expandedMap = {};  // 詳情展開狀態 { "dayIdx-itemIdx": true }
+
+// 拖曳
+let dragCtx = null;    // { dayIndex, itemIndex, element }
+
+// ==================== 儲存/載入 ====================
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trip));
+    showSaveIndicator();
+  } catch (e) {
+    toast("儲存失敗：" + e.message);
+  }
+}
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) return JSON.parse(s);
+  } catch (e) { console.error(e); }
+  return null;
+}
+function showSaveIndicator() {
+  const el = document.getElementById("saveIndicator");
+  el.textContent = "✓ 已儲存";
+  el.style.color = "#4a6b4a";
+  clearTimeout(showSaveIndicator._t);
+  showSaveIndicator._t = setTimeout(() => {
+    el.textContent = "自動儲存";
+    el.style.color = "#7a6a5a";
+  }, 1500);
+}
+
+// ==================== 渲染 ====================
+function render() {
+  document.getElementById("tripTitle").textContent = trip.title;
+  document.getElementById("tripSub").textContent = trip.subtitle;
+  renderDayTabs();
+  renderContent();
+  observeScroll();
+}
+
+function renderDayTabs() {
+  const wrap = document.getElementById("dayTabs");
+  wrap.innerHTML = trip.days.map(d => `
+    <button class="day-tab" data-day="${d.day}" onclick="scrollToDay(${d.day})">
+      <span class="num">D${d.day}</span>${d.date.replace(/ .+/, '')}
+    </button>
+  `).join("") + `
+    <button class="day-tab add" onclick="addDay()">+ 新增天</button>
+  `;
+}
+
+function renderContent() {
+  const main = document.getElementById("content");
+  main.innerHTML = trip.days.map((d, di) => `
+    <section class="day-card" id="day-${d.day}" data-day="DAY ${d.day}　·　${esc(d.date)}">
+      <div class="day-head">
+        <div class="day-titles">
+          <h2 class="day-title" onclick="openDayEditor(${di})">${esc(d.title)}</h2>
+          <p class="day-sub" onclick="openDayEditor(${di})">${esc(d.subtitle)}</p>
+        </div>
+        <div class="day-actions">
+          <button class="icon-btn" onclick="openDayEditor(${di})" title="編輯">✎</button>
+          <button class="icon-btn" onclick="deleteDay(${di})" title="刪除">🗑</button>
+        </div>
+      </div>
+      ${renderWeather(d)}
+      <div class="timeline" data-day-index="${di}">
+        ${d.items.map((it, ii) => renderItem(it, di, ii)).join("")}
+      </div>
+      <button class="add-item" onclick="openAddItemModal(${di})">+ 新增行程項目</button>
+      ${renderSummary(d, di)}
+      ${renderBudget(d)}
+    </section>
+  `).join("");
+
+  bindDrag();
+}
+
+function renderWeather(d) {
+  const w = weatherData[d.date];
+  if (w === undefined) {
+    return `<div class="day-weather loading">☀ 載入天氣中…</div>`;
+  }
+  if (w === null) {
+    return `<div class="day-weather error">☁ 無天氣資料（日期太遠或尚未設定城市）</div>`;
+  }
+  return `
+    <div class="day-weather" title="${esc(w.date)}｜${esc(trip.city?.name || "")}">
+      <span class="icon">${w.icon}</span>
+      <span class="w-cond">${esc(w.cond)}</span>
+      <span class="w-temp">
+        <span class="hi">${w.tmax}°</span>
+        <span style="color:#c9bda5">/</span>
+        <span class="lo">${w.tmin}°</span>
+      </span>
+      ${w.pop != null ? `<span style="color:#4a6b4a">💧 ${w.pop}%</span>` : ""}
+      <span class="w-meta">${esc(trip.city?.name || "")} · ${esc(w.date)}</span>
+    </div>
+  `;
+}
+
+function renderItem(it, di, ii) {
+  const color = CATEGORY_COLOR[it.type] || "#7a7a7a";
+  const key = `${di}-${ii}`;
+  const expanded = expandedMap[key];
+  const hasPhotos = it.photos && it.photos.length > 0;
+  const hasDetails = it.transport || it.tip || it.notes || hasPhotos;
+  const done = it.done;
+  const mapBtn = it.mapUrl ? `<a class="map-btn" href="${esc(it.mapUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="開啟地圖">🗺️ 導航</a>` : "";
+  return `
+    <div class="tl-item ${done ? "done" : ""}"
+         data-day-index="${di}" data-item-index="${ii}" draggable="true">
+      <span class="tl-dot" style="background:${color}"></span>
+      <div class="tl-row">
+        <button class="tl-check ${done ? "checked" : ""}"
+                onclick="toggleDone(${di}, ${ii})"
+                title="${done ? "取消完成" : "標記完成"}">
+          ${done ? "✓" : ""}
+        </button>
+        <div class="tl-time" onclick="openItemEditor(${di}, ${ii})">${esc(it.time)}</div>
+        <div class="tl-body">
+          <div class="tl-head">
+            <span class="tag" style="background:${color}" onclick="openItemEditor(${di}, ${ii})">
+              ${TAG_ICON[it.type] || ""} ${esc(it.type)}
+            </span>
+            <span class="tl-name" onclick="openItemEditor(${di}, ${ii})">${esc(it.name)}</span>
+            ${it.duration && it.duration !== "—"
+              ? `<span class="tl-dur" onclick="openItemEditor(${di}, ${ii})">· ${esc(it.duration)}</span>` : ""}
+            ${mapBtn}
+          </div>
+          ${it.note ? `<div class="tl-note" onclick="openItemEditor(${di}, ${ii})">${esc(it.note)}</div>` : ""}
+          ${hasPhotos ? `
+            <div class="tl-photos">
+              ${it.photos.map((p, pi) => `
+                <div class="tl-photo" onclick="openLightbox(${di}, ${ii}, ${pi})">
+                  <img src="${p}" alt="照片 ${pi+1}" loading="lazy">
+                  <button class="remove" onclick="event.stopPropagation(); removePhoto(${di}, ${ii}, ${pi})" title="移除照片">×</button>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+          ${hasDetails ? `
+            <button class="tl-expand ${expanded ? "open" : ""}" onclick="toggleDetails(${di}, ${ii}, this)">
+              <span class="chev">▶</span>
+              <span class="txt">${expanded ? "收合" : "詳情"}</span>
+            </button>
+            <div class="tl-details ${expanded ? "open" : ""}" id="d-${di}-${ii}">
+              ${it.transport ? `
+                <div class="tl-db">
+                  <div class="tl-db-label transport">🚃 交通</div>
+                  <div class="tl-db-content" onclick="openItemEditor(${di}, ${ii})">${escWithLinks(it.transport)}</div>
+                </div>
+              ` : ""}
+              ${it.tip ? `
+                <div class="tl-db">
+                  <div class="tl-db-label">💡 提醒 / 拍照重點</div>
+                  <div class="tl-db-content" onclick="openItemEditor(${di}, ${ii})">${escWithLinks(it.tip)}</div>
+                </div>
+              ` : ""}
+              ${it.notes ? `
+                <div class="tl-db">
+                  <div class="tl-db-label notes">📝 我的筆記</div>
+                  <div class="tl-db-content" onclick="openItemEditor(${di}, ${ii})">${escWithLinks(it.notes)}</div>
+                </div>
+              ` : `
+                <div class="tl-db">
+                  <div class="tl-db-label notes">📝 我的筆記</div>
+                  <div class="tl-db-placeholder" onclick="openItemEditor(${di}, ${ii})">點此新增筆記...</div>
+                </div>
+              `}
+            </div>
+          ` : `
+            <button class="tl-expand" onclick="openItemEditor(${di}, ${ii})">
+              <span class="chev">+</span>
+              <span class="txt">加入備註</span>
+            </button>
+          `}
+          <div class="tl-actions">
+            <button class="tl-mini-btn" onclick="openItemEditor(${di}, ${ii})">編輯</button>
+            <button class="tl-mini-btn" onclick="duplicateItem(${di}, ${ii})">複製</button>
+            <button class="tl-mini-btn danger" onclick="deleteItem(${di}, ${ii})">刪除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSummary(d, di) {
+  if (!d.summary || !d.summary.length) return `
+    <div class="day-summary">
+      <span class="s-title">
+        <span>📋 今日重點</span>
+        <button class="tl-mini-btn" onclick="openDayEditor(${di})">編輯</button>
+      </span>
+      <div style="color:#c9bda5; font-style:italic;">點編輯加入重點...</div>
+    </div>
+  `;
+  return `
+    <div class="day-summary">
+      <span class="s-title">
+        <span>📋 今日重點</span>
+        <button class="tl-mini-btn" onclick="openDayEditor(${di})">編輯</button>
+      </span>
+      <ul>${d.summary.map(s => `<li>${esc(s)}</li>`).join("")}</ul>
+    </div>
+  `;
+}
+
+function renderBudget(d) {
+  const total = d.items.reduce((sum, it) => sum + (it.budget || 0), 0);
+  const doneCount = d.items.filter(it => it.done).length;
+  const totalCount = d.items.length;
+  return `
+    <div class="day-budget">
+      <span>
+        Day ${d.day} 小計
+        <span class="prog">${doneCount}/${totalCount} 已完成</span>
+      </span>
+      <span class="amt">¥ ${total.toLocaleString()}</span>
+    </div>
+  `;
+}
+
+// ==================== 捲動/高亮 ====================
+function scrollToDay(day) {
+  const el = document.getElementById("day-" + day);
+  if (!el) return;
+  const headerH = document.querySelector(".top-header").offsetHeight;
+  const tabsH = document.querySelector(".day-tabs-wrap").offsetHeight;
+  const offset = el.offsetTop - headerH - tabsH - 8;
+  window.scrollTo({ top: offset, behavior: "smooth" });
+  updateActiveTab(day);
+}
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function updateActiveTab(day) {
+  document.querySelectorAll(".day-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.day == day);
+  });
+  const tab = document.querySelector(`.day-tab[data-day="${day}"]`);
+  if (tab) tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+}
+let scrollObserver = null;
+function observeScroll() {
+  if (scrollObserver) scrollObserver.disconnect();
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const day = e.target.id.replace("day-", "");
+        updateActiveTab(day);
+      }
+    });
+  }, { rootMargin: "-35% 0px -55% 0px" });
+  document.querySelectorAll(".day-card").forEach(el => scrollObserver.observe(el));
+}
+
+// ==================== 展開詳情 ====================
+function toggleDetails(di, ii, btn) {
+  const key = `${di}-${ii}`;
+  expandedMap[key] = !expandedMap[key];
+  const d = document.getElementById(`d-${di}-${ii}`);
+  if (d) {
+    d.classList.toggle("open", expandedMap[key]);
+    btn.classList.toggle("open", expandedMap[key]);
+    btn.querySelector(".txt").textContent = expandedMap[key] ? "收合" : "詳情";
+  }
+}
+
+// ==================== 勾選完成 ====================
+function toggleDone(di, ii) {
+  trip.days[di].items[ii].done = !trip.days[di].items[ii].done;
+  save();
+  render();
+}
+
+// ==================== 行程標題 ====================
+function openTripEditor() {
+  document.getElementById("fTripTitle").value = trip.title;
+  document.getElementById("fTripSub").value = trip.subtitle;
+  openModal("tripModal");
+}
+function saveTripEdit() {
+  trip.title = document.getElementById("fTripTitle").value.trim() || "我的行程";
+  trip.subtitle = document.getElementById("fTripSub").value;
+  save();
+  render();
+  closeModal("tripModal");
+  toast("已更新標題");
+}
+
+// ==================== Day 編輯 ====================
+function openDayEditor(di) {
+  const d = trip.days[di];
+  editCtx = { type: "day", dayIndex: di };
+  document.getElementById("dayModalTitle").textContent = `編輯 Day ${d.day}`;
+  document.getElementById("fDayDate").value = d.date;
+  document.getElementById("fDayTitle").value = d.title;
+  document.getElementById("fDaySub").value = d.subtitle;
+  document.getElementById("fDaySummary").value = (d.summary || []).join("\n");
+  openModal("dayModal");
+}
+function saveDayEdit() {
+  const d = trip.days[editCtx.dayIndex];
+  d.date = document.getElementById("fDayDate").value.trim() || d.date;
+  d.title = document.getElementById("fDayTitle").value.trim() || d.title;
+  d.subtitle = document.getElementById("fDaySub").value;
+  d.summary = document.getElementById("fDaySummary").value
+    .split("\n").map(s => s.trim()).filter(Boolean);
+  save();
+  render();
+  closeModal("dayModal");
+  toast("已更新 Day " + d.day);
+}
+function addDay() {
+  const newDay = {
+    day: trip.days.length + 1,
+    date: "新日期",
+    title: "新的一天",
+    subtitle: "點擊編輯副標題",
+    items: [],
+    summary: []
+  };
+  trip.days.push(newDay);
+  save();
+  render();
+  toast("已新增 Day " + newDay.day);
+  setTimeout(() => scrollToDay(newDay.day), 100);
+}
+function deleteDay(di) {
+  if (trip.days.length === 1) {
+    toast("至少需要一天");
+    return;
+  }
+  const d = trip.days[di];
+  confirmAction(`刪除 Day ${d.day}？`, `「${d.title}」的 ${d.items.length} 個項目將一併刪除，此動作無法復原。`, () => {
+    trip.days.splice(di, 1);
+    // 重新編號
+    trip.days.forEach((dd, i) => dd.day = i + 1);
+    save();
+    render();
+    toast("已刪除");
+  });
+}
+
+// ==================== 項目編輯 ====================
+function openItemEditor(di, ii) {
+  const d = trip.days[di];
+  const it = d.items[ii];
+  editCtx = { type: "edit", dayIndex: di, itemIndex: ii };
+  document.getElementById("itemModalTitle").textContent = "編輯行程";
+  document.getElementById("itemModalSub").textContent = `Day ${d.day} · ${d.title}`;
+  document.getElementById("fItemTime").value = normalizeTime(it.time);
+  document.getElementById("fItemType").value = it.type || "景點";
+  document.getElementById("fItemName").value = it.name || "";
+  document.getElementById("fItemDur").value = it.duration || "";
+  document.getElementById("fItemBudget").value = it.budget || 0;
+  document.getElementById("fItemNote").value = it.note || "";
+  document.getElementById("fItemMapUrl").value = it.mapUrl || "";
+  document.getElementById("fItemTransport").value = it.transport || "";
+  document.getElementById("fItemTip").value = it.tip || "";
+  document.getElementById("fItemNotes").value = it.notes || "";
+  editingPhotos = (it.photos || []).slice();
+  renderPhotoPreview();
+  openModal("itemModal");
+}
+function openAddItemModal(di) {
+  // 如果沒指定 di，就用目前畫面上的第一個 day，或顯示提示
+  if (di === undefined) {
+    // 找目前畫面中心附近的 day
+    const cards = document.querySelectorAll(".day-card");
+    const mid = window.innerHeight / 2;
+    let closest = 0, min = Infinity;
+    cards.forEach((c, i) => {
+      const r = c.getBoundingClientRect();
+      const d = Math.abs(r.top + r.height/2 - mid);
+      if (d < min) { min = d; closest = i; }
+    });
+    di = closest;
+  }
+  const d = trip.days[di];
+  editCtx = { type: "add", dayIndex: di };
+  document.getElementById("itemModalTitle").textContent = "新增行程";
+  document.getElementById("itemModalSub").textContent = `Day ${d.day} · ${d.title}`;
+  // 預填：取最後一項時間 + 1小時
+  const lastItem = d.items[d.items.length - 1];
+  let nextTime = "10:00";
+  if (lastItem) {
+    const t = normalizeTime(lastItem.time);
+    const [h, m] = t.split(":").map(Number);
+    const nextH = (h + 1) % 24;
+    nextTime = String(nextH).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+  }
+  document.getElementById("fItemTime").value = nextTime;
+  document.getElementById("fItemType").value = "景點";
+  document.getElementById("fItemName").value = "";
+  document.getElementById("fItemDur").value = "60分";
+  document.getElementById("fItemBudget").value = 0;
+  document.getElementById("fItemNote").value = "";
+  document.getElementById("fItemMapUrl").value = "";
+  document.getElementById("fItemTransport").value = "";
+  document.getElementById("fItemTip").value = "";
+  document.getElementById("fItemNotes").value = "";
+  editingPhotos = [];
+  renderPhotoPreview();
+  openModal("itemModal");
+}
+function saveItemEdit() {
+  const time = document.getElementById("fItemTime").value.trim();
+  const name = document.getElementById("fItemName").value.trim();
+  if (!name) { toast("請輸入名稱"); return; }
+  const data = {
+    time: time || "09:00",
+    type: document.getElementById("fItemType").value,
+    name: name,
+    duration: document.getElementById("fItemDur").value.trim() || "—",
+    budget: parseInt(document.getElementById("fItemBudget").value) || 0,
+    note: document.getElementById("fItemNote").value,
+    mapUrl: document.getElementById("fItemMapUrl").value.trim(),
+    transport: document.getElementById("fItemTransport").value,
+    tip: document.getElementById("fItemTip").value,
+    notes: document.getElementById("fItemNotes").value,
+    photos: editingPhotos.slice(),
+    done: false
+  };
+
+  if (editCtx.type === "edit") {
+    const it = trip.days[editCtx.dayIndex].items[editCtx.itemIndex];
+    Object.assign(it, data, { done: it.done }); // 保留 done 狀態
+    toast("已儲存");
+  } else {
+    trip.days[editCtx.dayIndex].items.push(data);
+    sortItemsByTime(trip.days[editCtx.dayIndex].items);
+    toast("已新增行程");
+  }
+  editingPhotos = [];
+  save();
+  render();
+  closeModal("itemModal");
+}
+function duplicateItem(di, ii) {
+  const orig = trip.days[di].items[ii];
+  const copy = JSON.parse(JSON.stringify(orig));
+  copy.name = copy.name + " (副本)";
+  copy.done = false;
+  trip.days[di].items.splice(ii + 1, 0, copy);
+  save();
+  render();
+  toast("已複製");
+}
+function deleteItem(di, ii) {
+  const it = trip.days[di].items[ii];
+  confirmAction("刪除項目？", `「${it.name}」將被刪除，此動作無法復原。`, () => {
+    trip.days[di].items.splice(ii, 1);
+    save();
+    render();
+    toast("已刪除");
+  });
+}
+function sortItemsByTime(items) {
+  items.sort((a, b) => {
+    const ta = normalizeTime(a.time), tb = normalizeTime(b.time);
+    return ta.localeCompare(tb);
+  });
+}
+function normalizeTime(t) {
+  if (!t) return "09:00";
+  // 24hr 已標準化
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  if (m) return String(m[1]).padStart(2, "0") + ":" + m[2];
+  return "09:00";
+}
+
+// ==================== 拖曳排序 ====================
+function bindDrag() {
+  document.querySelectorAll(".tl-item").forEach(el => {
+    el.addEventListener("dragstart", handleDragStart);
+    el.addEventListener("dragover", handleDragOver);
+    el.addEventListener("dragleave", handleDragLeave);
+    el.addEventListener("drop", handleDrop);
+    el.addEventListener("dragend", handleDragEnd);
+
+    // Touch 支援
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd);
+  });
+}
+function handleDragStart(e) {
+  const di = parseInt(this.dataset.dayIndex);
+  const ii = parseInt(this.dataset.itemIndex);
+  dragCtx = { dayIndex: di, itemIndex: ii, element: this };
+  this.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", `${di}-${ii}`);
+}
+function handleDragOver(e) {
+  if (!dragCtx) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  // 只同一天內拖曳
+  if (parseInt(this.dataset.dayIndex) !== dragCtx.dayIndex) return;
+  if (this === dragCtx.element) return;
+  document.querySelectorAll(".tl-item.drag-over").forEach(el => el.classList.remove("drag-over"));
+  this.classList.add("drag-over");
+}
+function handleDragLeave() {
+  this.classList.remove("drag-over");
+}
+function handleDrop(e) {
+  e.preventDefault();
+  if (!dragCtx) return;
+  const toDi = parseInt(this.dataset.dayIndex);
+  const toIi = parseInt(this.dataset.itemIndex);
+  if (toDi !== dragCtx.dayIndex) return;
+  if (toIi === dragCtx.itemIndex) return;
+  const items = trip.days[toDi].items;
+  const [moved] = items.splice(dragCtx.itemIndex, 1);
+  const newIdx = toIi > dragCtx.itemIndex ? toIi : toIi;
+  items.splice(newIdx, 0, moved);
+  save();
+  render();
+  toast("已調整順序");
+}
+function handleDragEnd() {
+  document.querySelectorAll(".tl-item.drag-over").forEach(el => el.classList.remove("drag-over"));
+  document.querySelectorAll(".tl-item.dragging").forEach(el => el.classList.remove("dragging"));
+  dragCtx = null;
+}
+
+// Touch 拖曳
+let touchDrag = null;
+function handleTouchStart(e) {
+  // 只有 .tl-dot 長按才算開始拖曳
+  if (!e.target.classList.contains("tl-dot")) return;
+  const el = this;
+  touchDrag = {
+    element: el,
+    startY: e.touches[0].clientY,
+    dayIndex: parseInt(el.dataset.dayIndex),
+    itemIndex: parseInt(el.dataset.itemIndex),
+    started: false
+  };
+}
+function handleTouchMove(e) {
+  if (!touchDrag) return;
+  const dy = e.touches[0].clientY - touchDrag.startY;
+  if (!touchDrag.started && Math.abs(dy) > 6) {
+    touchDrag.started = true;
+    touchDrag.element.classList.add("dragging");
+    e.preventDefault();
+  }
+  if (touchDrag.started) {
+    e.preventDefault();
+    // 找到手指下方的 tl-item
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+    touchDrag.element.style.pointerEvents = "none";
+    const target = document.elementFromPoint(x, y);
+    touchDrag.element.style.pointerEvents = "";
+    const item = target?.closest(".tl-item");
+    document.querySelectorAll(".tl-item.drag-over").forEach(el => el.classList.remove("drag-over"));
+    if (item && item !== touchDrag.element &&
+        parseInt(item.dataset.dayIndex) === touchDrag.dayIndex) {
+      item.classList.add("drag-over");
+      touchDrag.overItem = item;
+    } else {
+      touchDrag.overItem = null;
+    }
+  }
+}
+function handleTouchEnd() {
+  if (!touchDrag) return;
+  if (touchDrag.started && touchDrag.overItem) {
+    const toIi = parseInt(touchDrag.overItem.dataset.itemIndex);
+    const items = trip.days[touchDrag.dayIndex].items;
+    const [moved] = items.splice(touchDrag.itemIndex, 1);
+    items.splice(toIi, 0, moved);
+    save();
+    render();
+    toast("已調整順序");
+  }
+  document.querySelectorAll(".tl-item.drag-over, .tl-item.dragging").forEach(el => {
+    el.classList.remove("drag-over", "dragging");
+  });
+  touchDrag = null;
+}
+
+// ==================== 預算 Modal ====================
+function openBudgetModal() {
+  const rows = trip.days.map(d => {
+    const total = d.items.reduce((sum, it) => sum + (it.budget || 0), 0);
+    return `
+      <div class="modal-row">
+        <div>
+          <span class="d">DAY ${d.day}</span>
+        </div>
+        <div>
+          <strong>${esc(d.title)}</strong>
+          <div style="font-size:11px; color:#7a6a5a;">${esc(d.date)}</div>
+        </div>
+        <div class="b">¥${total.toLocaleString()}</div>
+      </div>
+    `;
+  }).join("");
+  const total = trip.days.reduce((sum, d) =>
+    sum + d.items.reduce((s, it) => s + (it.budget || 0), 0), 0
+  );
+  document.getElementById("budgetRows").innerHTML = rows;
+  document.getElementById("budgetTotal").textContent = `¥ ${total.toLocaleString()}`;
+}
+
+// ==================== 匯出/匯入/重置 ====================
+function exportData() {
+  const blob = new Blob([JSON.stringify(trip, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `trip_backup_${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("已匯出備份檔");
+}
+function importData() {
+  document.getElementById("importFile").click();
+}
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data.days || !Array.isArray(data.days)) throw new Error("格式錯誤");
+      confirmAction("匯入備份？", "目前的行程資料將被覆蓋，此動作無法復原。", () => {
+        trip = data;
+        save();
+        render();
+        toast("已匯入備份");
+      });
+    } catch (err) {
+      toast("匯入失敗：" + err.message);
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+}
+function confirmReset() {
+  confirmAction("重置為預設行程？", "你目前所有的修改與筆記都會被清除。建議先匯出備份。", () => {
+    trip = JSON.parse(JSON.stringify(DEFAULT_TRIP));
+    save();
+    render();
+    toast("已重置");
+  });
+}
+
+// ==================== Modal 通用 ====================
+function openModal(id) {
+  if (id === "budget" || id === "budgetModal") {
+    openBudgetModal();
+    id = "budgetModal";
+  }
+  document.getElementById(id).classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+  document.body.style.overflow = "";
+}
+function confirmAction(title, msg, cb) {
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("confirmMsg").textContent = msg;
+  confirmCallback = cb;
+  document.getElementById("confirmOk").onclick = () => {
+    closeModal("confirmModal");
+    if (confirmCallback) confirmCallback();
+    confirmCallback = null;
+  };
+  openModal("confirmModal");
+}
+
+// ==================== Toast ====================
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+// ==================== 工具 ====================
+function esc(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+// 轉換 URL 為可點擊連結（並 escape 其他內容）
+function escWithLinks(s) {
+  if (s == null) return "";
+  const escaped = esc(s);
+  // 匹配 http/https 連結
+  return escaped.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#b8593a; text-decoration:underline; word-break:break-all;">🗺️ 開啟地圖</a>'
+  );
+}
+
+// ==================== 照片處理 ====================
+let editingPhotos = []; // 編輯中暫存的照片 (base64 陣列)
+const MAX_PHOTO_SIZE = 1200; // 最大邊長 (px)
+const PHOTO_QUALITY = 0.72;  // JPEG 壓縮品質
+
+function handlePhotoFiles(files) {
+  if (!files || !files.length) return;
+  const arr = Array.from(files).filter(f => f.type.startsWith("image/"));
+  if (!arr.length) { toast("請選擇圖片檔"); return; }
+  toast(`處理 ${arr.length} 張照片中...`);
+  Promise.all(arr.map(resizeImage))
+    .then(results => {
+      editingPhotos = editingPhotos.concat(results);
+      renderPhotoPreview();
+      toast("照片已加入");
+    })
+    .catch(err => toast("照片處理失敗：" + err.message));
+}
+
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_PHOTO_SIZE || height > MAX_PHOTO_SIZE) {
+          if (width > height) {
+            height = Math.round(height * (MAX_PHOTO_SIZE / width));
+            width = MAX_PHOTO_SIZE;
+          } else {
+            width = Math.round(width * (MAX_PHOTO_SIZE / height));
+            height = MAX_PHOTO_SIZE;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", PHOTO_QUALITY));
+      };
+      img.onerror = () => reject(new Error("圖片載入失敗"));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("讀取失敗"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotoPreview() {
+  const wrap = document.getElementById("photoPreviewList");
+  if (!wrap) return;
+  wrap.innerHTML = editingPhotos.map((p, i) => `
+    <div class="photo-preview">
+      <img src="${p}" alt="預覽 ${i+1}">
+      <button class="rm" onclick="event.stopPropagation(); removeEditingPhoto(${i})">×</button>
+    </div>
+  `).join("");
+}
+
+function removeEditingPhoto(i) {
+  editingPhotos.splice(i, 1);
+  renderPhotoPreview();
+}
+
+function removePhoto(di, ii, pi) {
+  confirmAction("移除照片？", "此照片將被刪除。", () => {
+    trip.days[di].items[ii].photos.splice(pi, 1);
+    save();
+    render();
+    toast("已移除");
+  });
+}
+
+function bindPhotoInput() {
+  const area = document.getElementById("photoInputArea");
+  if (!area) return;
+
+  // 拖曳
+  area.addEventListener("dragover", e => {
+    e.preventDefault();
+    area.classList.add("dragover");
+  });
+  area.addEventListener("dragleave", () => area.classList.remove("dragover"));
+  area.addEventListener("drop", e => {
+    e.preventDefault();
+    area.classList.remove("dragover");
+    handlePhotoFiles(e.dataTransfer.files);
+  });
+
+  // 全域貼上 (只有 item modal 開啟時)
+  document.addEventListener("paste", e => {
+    const itemModal = document.getElementById("itemModal");
+    if (!itemModal.classList.contains("open")) return;
+    const items = e.clipboardData?.items || [];
+    const files = [];
+    for (const it of items) {
+      if (it.type.startsWith("image/")) {
+        const f = it.getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length) {
+      e.preventDefault();
+      handlePhotoFiles(files);
+    }
+  });
+}
+
+// ==================== Lightbox ====================
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+function openLightbox(di, ii, pi) {
+  const photos = trip.days[di].items[ii].photos || [];
+  if (!photos.length) return;
+  lightboxPhotos = photos;
+  lightboxIndex = pi;
+  document.getElementById("lightboxImg").src = photos[pi];
+  document.getElementById("lightbox").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+  document.body.style.overflow = "";
+}
+function bindLightboxKeys() {
+  document.addEventListener("keydown", e => {
+    const lb = document.getElementById("lightbox");
+    if (!lb.classList.contains("open")) return;
+    if (e.key === "Escape") closeLightbox();
+    else if (e.key === "ArrowRight" && lightboxIndex < lightboxPhotos.length - 1) {
+      lightboxIndex++;
+      document.getElementById("lightboxImg").src = lightboxPhotos[lightboxIndex];
+    } else if (e.key === "ArrowLeft" && lightboxIndex > 0) {
+      lightboxIndex--;
+      document.getElementById("lightboxImg").src = lightboxPhotos[lightboxIndex];
+    }
+  });
+}
+
+// ==================== 天氣 API (Open-Meteo) ====================
+let weatherData = {}; // { "6/13 (六)": {icon, cond, tmax, tmin, pop, date} | null }
+const WEATHER_CACHE_KEY = "trip_weather_cache_v1";
+
+// 判斷 date 字串 ("6/13 (六)" / "2026-06-13" / "6/13") 是否可解析成今年日期
+function parseTripDate(s) {
+  if (!s) return null;
+  // ISO 格式 YYYY-MM-DD
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  // M/D 或 M/D (週)
+  m = s.match(/^(\d{1,2})\/(\d{1,2})/);
+  if (m) {
+    // 推測年份：如果月份 < 當前月份，視為明年
+    const now = new Date();
+    let year = now.getFullYear();
+    const mon = +m[1], day = +m[2];
+    const candidate = new Date(year, mon-1, day);
+    // 如果候選日期比今天早 60 天以上，視為明年
+    if (candidate.getTime() < now.getTime() - 60*86400000) year++;
+    return new Date(year, mon-1, day);
+  }
+  return null;
+}
+
+function isoDate(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth()+1).padStart(2,"0") + "-" +
+    String(d.getDate()).padStart(2,"0");
+}
+
+// WMO weather code → icon + 中文
+function wmoToIcon(code) {
+  if (code == null) return { icon: "☁", cond: "—" };
+  if (code === 0) return { icon: "☀", cond: "晴朗" };
+  if (code <= 2) return { icon: "🌤", cond: "晴時多雲" };
+  if (code === 3) return { icon: "☁", cond: "多雲" };
+  if (code <= 48) return { icon: "🌫", cond: "霧" };
+  if (code <= 57) return { icon: "🌧", cond: "毛毛雨" };
+  if (code <= 67) return { icon: "🌧", cond: "雨" };
+  if (code <= 77) return { icon: "🌨", cond: "雪" };
+  if (code <= 82) return { icon: "🌦", cond: "陣雨" };
+  if (code <= 86) return { icon: "🌨", cond: "陣雪" };
+  if (code <= 99) return { icon: "⛈", cond: "雷雨" };
+  return { icon: "☁", cond: "—" };
+}
+
+async function fetchWeather() {
+  if (!trip.city || !trip.city.lat || !trip.city.lon) {
+    trip.days.forEach(d => { weatherData[d.date] = null; });
+    render();
+    return;
+  }
+
+  // 收集所有日期
+  const dates = [];
+  const dateMap = {}; // iso -> trip.date
+  trip.days.forEach(d => {
+    const parsed = parseTripDate(d.date);
+    if (parsed) {
+      const iso = isoDate(parsed);
+      dates.push(iso);
+      dateMap[iso] = d.date;
+    } else {
+      weatherData[d.date] = null;
+    }
+  });
+
+  if (!dates.length) { render(); return; }
+
+  // 檢查快取
+  const cacheKey = `${trip.city.lat},${trip.city.lon}`;
+  try {
+    const cached = JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY) || "{}");
+    if (cached.key === cacheKey && cached.ts && Date.now() - cached.ts < 3*3600*1000) {
+      // 3 小時內快取
+      weatherData = { ...weatherData, ...cached.data };
+      render();
+      return;
+    }
+  } catch {}
+
+  // Open-Meteo 一次拿 16 天
+  dates.sort();
+  const startDate = dates[0];
+  const endDate = dates[dates.length - 1];
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${trip.city.lat}&longitude=${trip.city.lon}` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
+    `&timezone=auto&start_date=${startDate}&end_date=${endDate}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const d = json.daily;
+    if (!d || !d.time) throw new Error("無資料");
+
+    const newData = {};
+    d.time.forEach((iso, i) => {
+      const tripDate = dateMap[iso];
+      if (!tripDate) return;
+      const { icon, cond } = wmoToIcon(d.weather_code[i]);
+      newData[tripDate] = {
+        date: iso,
+        icon, cond,
+        tmax: Math.round(d.temperature_2m_max[i]),
+        tmin: Math.round(d.temperature_2m_min[i]),
+        pop: d.precipitation_probability_max ? d.precipitation_probability_max[i] : null
+      };
+    });
+
+    // 沒拿到的日期設 null
+    trip.days.forEach(dd => {
+      if (!(dd.date in newData)) newData[dd.date] = weatherData[dd.date] || null;
+    });
+
+    weatherData = newData;
+
+    // 寫入快取
+    try {
+      localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+        key: cacheKey, ts: Date.now(), data: newData
+      }));
+    } catch {}
+
+    render();
+  } catch (err) {
+    console.error(err);
+    trip.days.forEach(d => { if (!(d.date in weatherData)) weatherData[d.date] = null; });
+    render();
+  }
+}
+
+// ==================== 天氣設定 Modal ====================
+function openSettingsModal() {
+  const c = trip.city || { name: "", lat: "", lon: "" };
+  document.getElementById("fCityName").value = c.name || "";
+  document.getElementById("fLat").value = c.lat || "";
+  document.getElementById("fLon").value = c.lon || "";
+  openModal("settingsModal");
+}
+function setCity(name, lat, lon) {
+  document.getElementById("fCityName").value = name;
+  document.getElementById("fLat").value = lat;
+  document.getElementById("fLon").value = lon;
+}
+function saveSettings() {
+  const name = document.getElementById("fCityName").value.trim();
+  const lat = parseFloat(document.getElementById("fLat").value);
+  const lon = parseFloat(document.getElementById("fLon").value);
+  if (!name || isNaN(lat) || isNaN(lon)) {
+    toast("請完整填寫");
+    return;
+  }
+  trip.city = { name, lat, lon };
+  weatherData = {}; // 清空，觸發重新抓
+  save();
+  render();
+  closeModal("settingsModal");
+  toast("更新天氣中...");
+  fetchWeather();
+}
+
+// ==================== 分享連結 (LZ-String 壓縮 + URL hash) ====================
+// 精簡版 LZ-String (壓縮 + Base64 URL-safe)
+const LZString = (function() {
+  const keyStrUriSafe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+  function getBaseValue(alphabet, character) {
+    if (!getBaseValue._map) getBaseValue._map = {};
+    if (!getBaseValue._map[alphabet]) {
+      getBaseValue._map[alphabet] = {};
+      for (let i = 0; i < alphabet.length; i++) {
+        getBaseValue._map[alphabet][alphabet.charAt(i)] = i;
+      }
+    }
+    return getBaseValue._map[alphabet][character];
+  }
+
+  function _compress(uncompressed, bitsPerChar, getCharFromInt) {
+    if (uncompressed == null) return "";
+    let i, value, context_dictionary = {}, context_dictionaryToCreate = {},
+        context_c = "", context_wc = "", context_w = "",
+        context_enlargeIn = 2, context_dictSize = 3, context_numBits = 2,
+        context_data = [], context_data_val = 0, context_data_position = 0, ii;
+
+    for (ii = 0; ii < uncompressed.length; ii += 1) {
+      context_c = uncompressed.charAt(ii);
+      if (!Object.prototype.hasOwnProperty.call(context_dictionary, context_c)) {
+        context_dictionary[context_c] = context_dictSize++;
+        context_dictionaryToCreate[context_c] = true;
+      }
+      context_wc = context_w + context_c;
+      if (Object.prototype.hasOwnProperty.call(context_dictionary, context_wc)) {
+        context_w = context_wc;
+      } else {
+        if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+          if (context_w.charCodeAt(0) < 256) {
+            for (i = 0; i < context_numBits; i++) {
+              context_data_val = (context_data_val << 1);
+              if (context_data_position == bitsPerChar-1) {
+                context_data_position = 0;
+                context_data.push(getCharFromInt(context_data_val));
+                context_data_val = 0;
+              } else context_data_position++;
+            }
+            value = context_w.charCodeAt(0);
+            for (i = 0; i < 8; i++) {
+              context_data_val = (context_data_val << 1) | (value&1);
+              if (context_data_position == bitsPerChar-1) {
+                context_data_position = 0;
+                context_data.push(getCharFromInt(context_data_val));
+                context_data_val = 0;
+              } else context_data_position++;
+              value = value >> 1;
+            }
+          } else {
+            value = 1;
+            for (i = 0; i < context_numBits; i++) {
+              context_data_val = (context_data_val << 1) | value;
+              if (context_data_position == bitsPerChar-1) {
+                context_data_position = 0;
+                context_data.push(getCharFromInt(context_data_val));
+                context_data_val = 0;
+              } else context_data_position++;
+              value = 0;
+            }
+            value = context_w.charCodeAt(0);
+            for (i = 0; i < 16; i++) {
+              context_data_val = (context_data_val << 1) | (value&1);
+              if (context_data_position == bitsPerChar-1) {
+                context_data_position = 0;
+                context_data.push(getCharFromInt(context_data_val));
+                context_data_val = 0;
+              } else context_data_position++;
+              value = value >> 1;
+            }
+          }
+          context_enlargeIn--;
+          if (context_enlargeIn == 0) { context_enlargeIn = Math.pow(2, context_numBits); context_numBits++; }
+          delete context_dictionaryToCreate[context_w];
+        } else {
+          value = context_dictionary[context_w];
+          for (i = 0; i < context_numBits; i++) {
+            context_data_val = (context_data_val << 1) | (value&1);
+            if (context_data_position == bitsPerChar-1) {
+              context_data_position = 0;
+              context_data.push(getCharFromInt(context_data_val));
+              context_data_val = 0;
+            } else context_data_position++;
+            value = value >> 1;
+          }
+        }
+        context_enlargeIn--;
+        if (context_enlargeIn == 0) { context_enlargeIn = Math.pow(2, context_numBits); context_numBits++; }
+        context_dictionary[context_wc] = context_dictSize++;
+        context_w = String(context_c);
+      }
+    }
+    if (context_w !== "") {
+      if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+        if (context_w.charCodeAt(0) < 256) {
+          for (i = 0; i < context_numBits; i++) {
+            context_data_val = (context_data_val << 1);
+            if (context_data_position == bitsPerChar-1) {
+              context_data_position = 0;
+              context_data.push(getCharFromInt(context_data_val));
+              context_data_val = 0;
+            } else context_data_position++;
+          }
+          value = context_w.charCodeAt(0);
+          for (i = 0; i < 8; i++) {
+            context_data_val = (context_data_val << 1) | (value&1);
+            if (context_data_position == bitsPerChar-1) {
+              context_data_position = 0;
+              context_data.push(getCharFromInt(context_data_val));
+              context_data_val = 0;
+            } else context_data_position++;
+            value = value >> 1;
+          }
+        } else {
+          value = 1;
+          for (i = 0; i < context_numBits; i++) {
+            context_data_val = (context_data_val << 1) | value;
+            if (context_data_position == bitsPerChar-1) {
+              context_data_position = 0;
+              context_data.push(getCharFromInt(context_data_val));
+              context_data_val = 0;
+            } else context_data_position++;
+            value = 0;
+          }
+          value = context_w.charCodeAt(0);
+          for (i = 0; i < 16; i++) {
+            context_data_val = (context_data_val << 1) | (value&1);
+            if (context_data_position == bitsPerChar-1) {
+              context_data_position = 0;
+              context_data.push(getCharFromInt(context_data_val));
+              context_data_val = 0;
+            } else context_data_position++;
+            value = value >> 1;
+          }
+        }
+        context_enlargeIn--;
+        if (context_enlargeIn == 0) { context_enlargeIn = Math.pow(2, context_numBits); context_numBits++; }
+        delete context_dictionaryToCreate[context_w];
+      } else {
+        value = context_dictionary[context_w];
+        for (i = 0; i < context_numBits; i++) {
+          context_data_val = (context_data_val << 1) | (value&1);
+          if (context_data_position == bitsPerChar-1) {
+            context_data_position = 0;
+            context_data.push(getCharFromInt(context_data_val));
+            context_data_val = 0;
+          } else context_data_position++;
+          value = value >> 1;
+        }
+      }
+      context_enlargeIn--;
+      if (context_enlargeIn == 0) { context_enlargeIn = Math.pow(2, context_numBits); context_numBits++; }
+    }
+    value = 2;
+    for (i = 0; i < context_numBits; i++) {
+      context_data_val = (context_data_val << 1) | (value&1);
+      if (context_data_position == bitsPerChar-1) {
+        context_data_position = 0;
+        context_data.push(getCharFromInt(context_data_val));
+        context_data_val = 0;
+      } else context_data_position++;
+      value = value >> 1;
+    }
+    while (true) {
+      context_data_val = (context_data_val << 1);
+      if (context_data_position == bitsPerChar-1) {
+        context_data.push(getCharFromInt(context_data_val));
+        break;
+      } else context_data_position++;
+    }
+    return context_data.join("");
+  }
+
+  function _decompress(length, resetValue, getNextValue) {
+    let dictionary = [], next, enlargeIn = 4, dictSize = 4, numBits = 3, entry = "",
+        result = [], i, w, bits, resb, maxpower, power,
+        c, data = { val: getNextValue(0), position: resetValue, index: 1 };
+    for (i = 0; i < 3; i += 1) dictionary[i] = i;
+    bits = 0; maxpower = Math.pow(2, 2); power = 1;
+    while (power != maxpower) {
+      resb = data.val & data.position;
+      data.position >>= 1;
+      if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+      bits |= (resb > 0 ? 1 : 0) * power;
+      power <<= 1;
+    }
+    switch (next = bits) {
+      case 0: bits = 0; maxpower = Math.pow(2, 8); power = 1;
+        while (power != maxpower) {
+          resb = data.val & data.position;
+          data.position >>= 1;
+          if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+          bits |= (resb > 0 ? 1 : 0) * power;
+          power <<= 1;
+        }
+        c = String.fromCharCode(bits); break;
+      case 1: bits = 0; maxpower = Math.pow(2, 16); power = 1;
+        while (power != maxpower) {
+          resb = data.val & data.position;
+          data.position >>= 1;
+          if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+          bits |= (resb > 0 ? 1 : 0) * power;
+          power <<= 1;
+        }
+        c = String.fromCharCode(bits); break;
+      case 2: return "";
+    }
+    dictionary[3] = c; w = c; result.push(c);
+    while (true) {
+      if (data.index > length) return "";
+      bits = 0; maxpower = Math.pow(2, numBits); power = 1;
+      while (power != maxpower) {
+        resb = data.val & data.position;
+        data.position >>= 1;
+        if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+        bits |= (resb > 0 ? 1 : 0) * power;
+        power <<= 1;
+      }
+      switch (c = bits) {
+        case 0: bits = 0; maxpower = Math.pow(2, 8); power = 1;
+          while (power != maxpower) {
+            resb = data.val & data.position;
+            data.position >>= 1;
+            if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+            bits |= (resb > 0 ? 1 : 0) * power;
+            power <<= 1;
+          }
+          dictionary[dictSize++] = String.fromCharCode(bits); c = dictSize - 1; enlargeIn--; break;
+        case 1: bits = 0; maxpower = Math.pow(2, 16); power = 1;
+          while (power != maxpower) {
+            resb = data.val & data.position;
+            data.position >>= 1;
+            if (data.position == 0) { data.position = resetValue; data.val = getNextValue(data.index++); }
+            bits |= (resb > 0 ? 1 : 0) * power;
+            power <<= 1;
+          }
+          dictionary[dictSize++] = String.fromCharCode(bits); c = dictSize - 1; enlargeIn--; break;
+        case 2: return result.join("");
+      }
+      if (enlargeIn == 0) { enlargeIn = Math.pow(2, numBits); numBits++; }
+      if (dictionary[c]) entry = dictionary[c];
+      else { if (c === dictSize) entry = w + w.charAt(0); else return null; }
+      result.push(entry);
+      dictionary[dictSize++] = w + entry.charAt(0);
+      enlargeIn--;
+      w = entry;
+      if (enlargeIn == 0) { enlargeIn = Math.pow(2, numBits); numBits++; }
+    }
+  }
+
+  return {
+    compressToEncodedURIComponent: function (input) {
+      if (input == null) return "";
+      return _compress(input, 6, function(a){ return keyStrUriSafe.charAt(a); });
+    },
+    decompressFromEncodedURIComponent: function (input) {
+      if (input == null) return "";
+      if (input == "") return null;
+      input = input.replace(/ /g, "+");
+      return _decompress(input.length, 32, function(index){
+        return getBaseValue(keyStrUriSafe, input.charAt(index));
+      });
+    }
+  };
+})();
+
+// 做分享版資料（去掉 photos，省空間）
+function buildShareableTrip() {
+  const t = JSON.parse(JSON.stringify(trip));
+  t.days.forEach(d => {
+    d.items.forEach(it => {
+      delete it.photos;
+      it.done = false; // 分享時不保留勾選狀態
+    });
+  });
+  return t;
+}
+
+function openShareModal() {
+  const box = document.getElementById("shareUrlBox");
+  const sizeEl = document.getElementById("shareSize");
+  box.textContent = "產生中...";
+  sizeEl.textContent = "";
+  openModal("shareModal");
+
+  setTimeout(() => {
+    try {
+      const shareable = buildShareableTrip();
+      const json = JSON.stringify(shareable);
+      const compressed = LZString.compressToEncodedURIComponent(json);
+      const base = location.href.split("#")[0].split("?")[0];
+      const url = `${base}#share=${compressed}`;
+      box.textContent = url;
+
+      // 顯示大小
+      const kb = (url.length / 1024).toFixed(1);
+      const ratio = Math.round((1 - compressed.length / json.length) * 100);
+      sizeEl.textContent = `連結長度：${url.length.toLocaleString()} 字元（${kb} KB，壓縮 ${ratio}%）`;
+      if (url.length > 8000) {
+        sizeEl.classList.add("warn");
+        sizeEl.textContent += "　⚠️ 較長，某些平台可能截斷";
+      } else {
+        sizeEl.classList.remove("warn");
+      }
+    } catch (e) {
+      box.textContent = "產生失敗：" + e.message;
+    }
+  }, 50);
+}
+
+function copyShareUrl() {
+  const box = document.getElementById("shareUrlBox");
+  const url = box.textContent;
+  if (!url || url.startsWith("產生")) { toast("連結尚未產生"); return; }
+
+  // 嘗試用 Clipboard API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      toast("✓ 連結已複製");
+    }).catch(() => fallbackCopy(url));
+  } else {
+    fallbackCopy(url);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    toast("✓ 連結已複製");
+  } catch {
+    toast("複製失敗，請手動選取");
+  }
+  document.body.removeChild(ta);
+}
+
+// 檢查 URL hash 是否有分享資料
+function checkShareURL() {
+  const hash = location.hash;
+  if (hash.startsWith("#share=")) {
+    const compressed = hash.slice(7);
+    try {
+      const json = LZString.decompressFromEncodedURIComponent(compressed);
+      if (!json) throw new Error("解壓失敗");
+      const shared = JSON.parse(json);
+      if (!shared.days || !Array.isArray(shared.days)) throw new Error("格式錯誤");
+
+      // 問使用者要不要套用
+      confirmAction(
+        "收到分享的行程",
+        `「${shared.title || "未命名"}」共 ${shared.days.length} 天。\n點確定會覆蓋你目前的行程（建議先匯出備份）。`,
+        () => {
+          trip = shared;
+          // 補必要欄位
+          trip.days.forEach(d => {
+            (d.items || []).forEach(it => {
+              if (it.photos === undefined) it.photos = [];
+              if (it.done === undefined) it.done = false;
+              if (it.mapUrl === undefined) it.mapUrl = "";
+              if (it.notes === undefined) it.notes = "";
+            });
+          });
+          save();
+          location.hash = ""; // 清除 hash 避免下次又跳
+          render();
+          fetchWeather();
+          toast("已套用分享的行程");
+        }
+      );
+    } catch (e) {
+      toast("分享連結解析失敗：" + e.message);
+      location.hash = "";
+    }
+  }
+}
+
+// ==================== 初始化 ====================
+(function init() {
+  trip = load() || JSON.parse(JSON.stringify(DEFAULT_TRIP));
+  // 資料相容性補欄位
+  if (!trip.city) trip.city = { name: "東京", lat: 35.6762, lon: 139.6503 };
+  trip.days.forEach(d => {
+    d.items.forEach(it => {
+      if (it.notes === undefined) it.notes = "";
+      if (it.done === undefined) it.done = false;
+      if (it.photos === undefined) it.photos = [];
+      if (it.mapUrl === undefined) it.mapUrl = "";
+    });
+  });
+  render();
+  document.querySelector('.day-tab[data-day="1"]')?.classList.add("active");
+
+  // 綁定照片輸入事件
+  bindPhotoInput();
+  bindLightboxKeys();
+
+  // 檢查分享 URL（優先於天氣）
+  checkShareURL();
+
+  // 載入天氣
+  fetchWeather();
+})();
+</script>
+</body>
+</html>
